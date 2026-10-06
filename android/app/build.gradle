@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+// La versión sale de package.json (única fuente). versionCode, que Play Store exige que crezca
+// en cada subida, se deriva de ella: 1.2.3 → 10203.
+def appVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')).version
+def appVersionCode = appVersion.tokenize('.-').take(3).collect { it as int }.with { it[0] * 10000 + it[1] * 100 + it[2] }
+
 android {
     namespace = "com.shgonzals.garage"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +12,8 @@ android {
         applicationId "com.shgonzals.garage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

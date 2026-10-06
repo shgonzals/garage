@@ -80,8 +80,11 @@ tests/             Vitest (sql.js en memoria para el repositorio)
 
 ## Roadmap
 
+Detalle de cada versión en [CHANGELOG.md](CHANGELOG.md). La versión vive en `package.json` (Android la toma de ahí).
+
 - [x] **0.1 MVP local:** vehículos, odómetro, registros, motor de urgencias + ITV, timeline, registro rápido, plan de mantenimiento, modo oscuro, tests
-- [ ] **0.2:** adjuntos (tabla `documents` ya creada), seguro/impuesto, notificaciones locales, exportar/importar
-- [ ] **0.3:** Supabase (auth, RLS, sync, borrar cuenta)
-- [ ] **0.4:** repostajes, consumo, coste por mes y km
+- [x] **0.2:** estilo Taller + Cuadro con 5 temas, escritorio, foto del vehículo, corregir registros y km, exportar/importar, avisos locales y ritmo de km, tareas personalizadas, app Android con logo
+- [ ] **0.3:** seguro e impuesto como vencimientos, adjuntos (tickets y facturas; tabla `documents` ya creada), posponer avisos
+- [ ] **0.4:** Supabase (auth con Google, RLS, sync, borrar cuenta)
+- [ ] **0.5:** repostajes, consumo, coste por mes y km
 - [ ] **1.0:** beta cerrada, App Store + Google Play

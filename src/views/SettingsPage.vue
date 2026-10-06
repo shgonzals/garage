@@ -119,7 +119,7 @@
         </div>
       </section>
 
-      <p class="g-muted about">Garage v{{ version }} · Fase 0.1 (MVP local)</p>
+      <p class="g-muted about">Garage v{{ version }}</p>
     </ion-content>
   </ion-page>
 </template>
