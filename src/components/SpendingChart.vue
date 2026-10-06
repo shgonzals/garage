@@ -1,8 +1,8 @@
 <template>
   <div ref="root" class="viz" @pointerleave="active = null">
     <ul class="legend">
-      <li><span class="key maintenance" />Mantenimiento <strong>{{ money(totals.maintenance) }}</strong></li>
-      <li><span class="key fuel" />Combustible <strong>{{ money(totals.fuel) }}</strong></li>
+      <li><span class="key maintenance" />{{ $t('stats.maintenance') }} <strong>{{ money(totals.maintenance) }}</strong></li>
+      <li><span class="key fuel" />{{ $t('stats.fuel') }} <strong>{{ money(totals.fuel) }}</strong></li>
     </ul>
     <svg v-if="width > 0" :width="width" :height="HEIGHT" role="img" :aria-label="summary">
       <!-- Rejilla: 0, mitad y máximo -->
@@ -15,7 +15,7 @@
       <g v-for="(m, i) in months" :key="m.month">
         <path v-for="seg in segments(m, i)" :key="seg.key" :d="seg.d" :class="seg.key" />
         <text class="month" :class="{ current: i === active }" :x="cx(i)" :y="HEIGHT - 6" text-anchor="middle">
-          {{ MONTH_INITIALS[i] }}
+          {{ monthInitial(i) }}
         </text>
         <!-- Zona de toque: toda la columna, más grande que la barra -->
         <rect
@@ -25,7 +25,7 @@
           :width="band"
           :height="HEIGHT"
           tabindex="0"
-          :aria-label="`${MONTH_NAMES[i]}: ${money(m.maintenance + m.fuel)}`"
+          :aria-label="`${monthName(i)}: ${money(m.maintenance + m.fuel)}`"
           @pointerenter="active = i"
           @pointerdown="active = i"
           @focus="active = i"
@@ -35,17 +35,18 @@
     </svg>
 
     <div v-if="active !== null && tip" class="tip" :style="{ left: `${tip.left}px` }" role="status">
-      <div class="tip-title">{{ MONTH_NAMES[active] }}</div>
-      <div class="tip-row"><span class="tip-value">{{ money(tip.maintenance) }}</span><span class="key maintenance" />Mantenimiento</div>
-      <div class="tip-row"><span class="tip-value">{{ money(tip.fuel) }}</span><span class="key fuel" />Combustible</div>
-      <div class="tip-total"><span class="tip-value">{{ money(tip.maintenance + tip.fuel) }}</span>Total</div>
+      <div class="tip-title">{{ monthName(active) }}</div>
+      <div class="tip-row"><span class="tip-value">{{ money(tip.maintenance) }}</span><span class="key maintenance" />{{ $t('stats.maintenance') }}</div>
+      <div class="tip-row"><span class="tip-value">{{ money(tip.fuel) }}</span><span class="key fuel" />{{ $t('stats.fuel') }}</div>
+      <div class="tip-total"><span class="tip-value">{{ money(tip.maintenance + tip.fuel) }}</span>{{ $t('stats.total') }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { formatMoney } from '@/domain/format';
+import { formatMoney, intlNumberLocale, monthName } from '@/domain/format';
+import { t } from '@/i18n';
 import type { MonthSpend } from '@/domain/stats';
 
 /** Gasto mensual del año en columnas apiladas: mantenimiento (abajo) y combustible (arriba). */
@@ -57,11 +58,7 @@ const BOTTOM = 22; // iniciales de los meses
 const TOP = 8;
 const GAP = 2;
 const TIP_WIDTH = 168; // hueco del color de la superficie entre segmentos
-const MONTH_INITIALS = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
+const monthInitial = (i: number) => monthName(i).charAt(0);
 
 const root = ref<HTMLElement>();
 const width = ref(0);
@@ -75,8 +72,14 @@ onMounted(() => {
 onBeforeUnmount(() => observer?.disconnect());
 
 const money = (cents: number) => formatMoney(cents);
+/** Marcas del eje: "500 €", "1000 €"; en compacto solo desde 10.000 € ("15 mil €", "€15K"). */
 const compactEuros = (cents: number) =>
-  `${new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(cents / 100)} €`;
+  new Intl.NumberFormat(intlNumberLocale(), {
+    style: 'currency',
+    currency: 'EUR',
+    notation: cents >= 1_000_000 ? 'compact' : 'standard',
+    maximumFractionDigits: cents >= 1_000_000 ? 1 : 0,
+  }).format(cents / 100);
 
 /** Máximo "redondo" (1, 2, 2,5 o 5 × 10ⁿ €) para que las marcas del eje sean limpias. */
 const max = computed(() => {
@@ -128,7 +131,7 @@ const totals = computed(() => ({
   fuel: props.months.reduce((s, m) => s + m.fuel, 0),
 }));
 const summary = computed(
-  () => `Gasto mensual del año: mantenimiento ${money(totals.value.maintenance)}, combustible ${money(totals.value.fuel)}`,
+  () => t('stats.chartSummary', { maintenance: money(totals.value.maintenance), fuel: money(totals.value.fuel) }),
 );
 </script>
 

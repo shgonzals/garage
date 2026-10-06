@@ -2,21 +2,21 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Gastos</ion-title>
+        <ion-title>{{ $t('nav.stats') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Gastos</ion-title>
+          <ion-title size="large">{{ $t('nav.stats') }}</ion-title>
         </ion-toolbar>
       </ion-header>
 
       <div v-if="store.vehicles.length === 0" class="g-empty">
         <div class="g-empty-emoji">💶</div>
-        <h2>Aún no hay gastos</h2>
-        <p>Añade un vehículo y apunta el importe de tus registros y repostajes.</p>
+        <h2>{{ $t('statsPage.emptyTitle') }}</h2>
+        <p>{{ $t('statsPage.emptyText') }}</p>
       </div>
 
       <template v-else>
@@ -24,18 +24,18 @@
         <div class="filters">
           <ion-segment v-if="store.vehicles.length > 1" v-model="filter" :scrollable="true" class="filter">
             <ion-segment-button value="all">
-              <ion-label>Todos</ion-label>
+              <ion-label>{{ $t('common.all') }}</ion-label>
             </ion-segment-button>
             <ion-segment-button v-for="v in store.vehicles" :key="v.id" :value="v.id">
               <ion-label>{{ v.name }}</ion-label>
             </ion-segment-button>
           </ion-segment>
-          <div class="year" role="group" aria-label="Año">
-            <ion-button fill="clear" size="small" :disabled="!olderYear" aria-label="Año anterior" @click="year = olderYear!">
+          <div class="year" role="group" :aria-label="$t('statsPage.year')">
+            <ion-button fill="clear" size="small" :disabled="!olderYear" :aria-label="$t('statsPage.prevYear')" @click="year = olderYear!">
               <ion-icon slot="icon-only" :icon="chevronBack" />
             </ion-button>
             <span class="year-value g-mono">{{ year }}</span>
-            <ion-button fill="clear" size="small" :disabled="!newerYear" aria-label="Año siguiente" @click="year = newerYear!">
+            <ion-button fill="clear" size="small" :disabled="!newerYear" :aria-label="$t('statsPage.nextYear')" @click="year = newerYear!">
               <ion-icon slot="icon-only" :icon="chevronForward" />
             </ion-button>
           </div>
@@ -43,54 +43,54 @@
 
         <!-- La cifra del año -->
         <section class="hero">
-          <div class="hero-label">Gastado en {{ year }}</div>
+          <div class="hero-label">{{ $t('statsPage.spentIn', { year }) }}</div>
           <div class="hero-value">{{ formatMoney(totals.total) }}</div>
-          <div v-if="perMonth" class="g-secondary hero-sub">{{ perMonth }} al mes de media</div>
+          <div v-if="perMonth" class="g-secondary hero-sub">{{ $t('statsPage.perMonth', { amount: perMonth }) }}</div>
         </section>
 
         <section class="g-card chart-card">
           <SpendingChart v-if="totals.total > 0" :months="months" />
           <p v-else class="g-secondary no-data">
-            Sin importes en {{ year }}. Apunta lo que pagas en cada registro o repostaje para verlo aquí.
+            {{ $t('statsPage.noData', { year }) }}
           </p>
         </section>
 
         <!-- Un vehículo: sus cifras -->
         <section v-if="selected" class="g-section">
-          <h3 class="g-section-title">{{ selected.vehicle.name }} en {{ year }}</h3>
+          <h3 class="g-section-title">{{ $t('statsPage.vehicleIn', { name: selected.vehicle.name, year }) }}</h3>
           <div class="kpis">
             <div class="kpi">
-              <div class="kpi-label">Coste por {{ selected.unit === 'km' ? 'km' : 'hora' }}</div>
+              <div class="kpi-label">{{ selected.unit === 'km' ? $t('statsPage.costPerKm') : $t('statsPage.costPerHour') }}</div>
               <div class="kpi-value">{{ costPerUnit(selected.stats, selected.unit) }}</div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Consumo medio</div>
+              <div class="kpi-label">{{ $t('statsPage.consumption') }}</div>
               <div class="kpi-value">{{ consumption(selected.stats, selected.unit) }}</div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">{{ selected.unit === 'km' ? 'Recorrido' : 'Horas de uso' }}</div>
+              <div class="kpi-label">{{ selected.unit === 'km' ? $t('statsPage.distance') : $t('statsPage.hoursUsed') }}</div>
               <div class="kpi-value">
                 {{ selected.stats.distance !== null ? formatUsage(selected.stats.distance, selected.unit) : '—' }}
               </div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Repostado</div>
+              <div class="kpi-label">{{ $t('statsPage.refuelled') }}</div>
               <div class="kpi-value">{{ selected.stats.fuelCentiliters > 0 ? formatLiters(selected.stats.fuelCentiliters) : '—' }}</div>
             </div>
           </div>
           <p v-if="selected.stats.consumption === null" class="g-secondary hint">
-            El consumo sale de dos repostajes con el depósito lleno y los km apuntados.
+            {{ $t('statsPage.consumptionHint') }}
           </p>
         </section>
 
         <!-- Todos: comparativa por vehículo (también es la vista en tabla del gráfico) -->
         <section v-else class="g-section">
-          <h3 class="g-section-title">Por vehículo</h3>
+          <h3 class="g-section-title">{{ $t('statsPage.byVehicle') }}</h3>
           <table class="table">
             <thead>
               <tr>
-                <th scope="col">Vehículo</th>
-                <th scope="col" class="num">Gasto</th>
+                <th scope="col">{{ $t('common.vehicle') }}</th>
+                <th scope="col" class="num">{{ $t('statsPage.spent') }}</th>
                 <th scope="col" class="num">€/km</th>
                 <th scope="col" class="num">L/100</th>
               </tr>
@@ -112,19 +112,19 @@
         </section>
 
         <details class="months">
-          <summary>Ver mes a mes</summary>
+          <summary>{{ $t('statsPage.monthByMonth') }}</summary>
           <table class="table">
             <thead>
               <tr>
-                <th scope="col">Mes</th>
-                <th scope="col" class="num">Mantenimiento</th>
-                <th scope="col" class="num">Combustible</th>
-                <th scope="col" class="num">Total</th>
+                <th scope="col">{{ $t('statsPage.month') }}</th>
+                <th scope="col" class="num">{{ $t('stats.maintenance') }}</th>
+                <th scope="col" class="num">{{ $t('stats.fuel') }}</th>
+                <th scope="col" class="num">{{ $t('stats.total') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="m in months" :key="m.month">
-                <th scope="row">{{ MONTHS[m.month] }}</th>
+                <th scope="row">{{ monthName(m.month) }}</th>
                 <td class="num">{{ formatMoney(m.maintenance) }}</td>
                 <td class="num">{{ formatMoney(m.fuel) }}</td>
                 <td class="num">{{ formatMoney(m.maintenance + m.fuel) }}</td>
@@ -154,15 +154,11 @@ import {
 import { chevronBack, chevronForward } from 'ionicons/icons';
 import SpendingChart from '@/components/SpendingChart.vue';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
-import { formatLiters, formatMoney, formatUsage } from '@/domain/format';
+import { formatDecimal, formatLiters, formatMoney, formatUsage, monthName } from '@/domain/format';
 import { monthlySpending, vehicleYearStats, yearsWithData, type YearStats } from '@/domain/stats';
 import { usageUnit, type UsageUnit } from '@/domain/units';
 import { useGarageStore } from '@/stores/garage';
 
-const MONTHS = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
 
 const store = useGarageStore();
 const filter = ref<string>('all');
@@ -227,14 +223,14 @@ const perVehicle = computed(() =>
 function costPerUnit(stats: YearStats, unit: UsageUnit, bare = false): string {
   if (stats.costPerUnit === null || stats.total === 0) return '—';
   // Céntimos por km: con tres decimales de euro se distingue 0,032 € de 0,038 €.
-  const value = (stats.costPerUnit / 100).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const value = formatDecimal(stats.costPerUnit / 100, 3, 3);
   if (unit === 'h') return `${value} €/h`;
   return bare ? value : `${value} €/km`;
 }
 
 function consumption(stats: YearStats, unit: UsageUnit, bare = false): string {
   if (stats.consumption === null) return '—';
-  const value = stats.consumption.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const value = formatDecimal(stats.consumption, 1, 1);
   if (unit === 'h') return `${value} L/h`;
   return bare ? value : `${value} L/100 km`;
 }

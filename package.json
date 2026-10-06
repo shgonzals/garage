@@ -1,7 +1,7 @@
 {
   "name": "garage",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "App multiplataforma para llevar el mantenimiento de motos y vehículos personales.",
   "scripts": {
@@ -36,6 +36,7 @@
     "sql.js": "1.11.0",
     "uuid": "^14.0.2",
     "vue": "^3.5.43",
+    "vue-i18n": "^11.4.13",
     "vue-router": "^5.3.1",
     "zod": "^4.6.5"
   },

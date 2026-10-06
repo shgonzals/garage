@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { t } from '@/i18n';
 // Import estático: un plugin de Capacitor no puede devolverse desde una función async
 // (el `await` llama a su `.then()`, que el proxy nativo no implementa).
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -104,8 +105,8 @@ export async function sendTestAlert(): Promise<void> {
     notifications: [
       {
         id: 1,
-        title: 'Garage · Aviso de prueba',
-        body: 'Así te avisaremos cuando toque un mantenimiento.',
+        title: t('alerts.testTitle'),
+        body: t('alerts.testBody'),
         schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
       },
     ],

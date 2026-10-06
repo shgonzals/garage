@@ -4,4 +4,10 @@
     <string name="title_activity_main">Garage</string>
     <string name="package_name">com.shgonzals.garage</string>
     <string name="custom_url_scheme">com.shgonzals.garage</string>
+    <!-- Widget (en inglés por defecto; español en values-es). Los textos con datos los manda la app ya traducidos. -->
+    <string name="widget_description">Upcoming services and a quick log button</string>
+    <string name="widget_quick_log">Log</string>
+    <string name="widget_open_app">Open Garage to see what’s due</string>
+    <string name="widget_sample_title">CBR600RR · Chain lube</string>
+    <string name="widget_sample_subtitle">Due at 23,500 km</string>
 </resources>

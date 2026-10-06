@@ -91,6 +91,6 @@ Detalle de cada versión en [CHANGELOG.md](CHANGELOG.md). La versión vive en `p
 - [x] **0.3:** seguro e impuesto como vencimientos, Google Calendar, tests de interfaz
 - [x] **0.4:** posponer avisos; repostajes, consumo y estadísticas de gasto; más tareas propias de moto, con un
   plan de mantenimiento y un registro rápido más manejables; kart y pitbike (horas de motor)
-- [ ] **0.5:** widget de Android, traducción al inglés
+- [x] **0.5:** widget de Android, traducción al inglés
 - [ ] **1.0:** prueba cerrada y publicación en Google Play (1,99 €)
 - [ ] **Más adelante:** cuenta con Google y sincronización entre dispositivos, iOS

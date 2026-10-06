@@ -7,7 +7,9 @@
         <span v-if="vehicleName" class="vehicle">· {{ vehicleName }}</span>
       </h4>
       <p class="headline">{{ reminderHeadline(reminder) }}</p>
-      <p v-if="estimate" class="estimate">≈ {{ formatDate(estimate) }} a tu ritmo ({{ formatRate(perDay, reminder.unit) }})</p>
+      <p v-if="estimate" class="estimate">
+        ≈ {{ $t('urgency.atYourPace', { date: formatDate(estimate), rate: formatRate(perDay, reminder.unit) }) }}
+      </p>
       <p v-if="lastLine" class="last">{{ lastLine }}</p>
     </div>
     <!-- Acciones: solo donde la tarjeta no está dentro de otro botón (ficha del vehículo). -->
@@ -16,8 +18,8 @@
         v-if="canSnooze"
         type="button"
         class="action"
-        :aria-label="reminder.status === 'snoozed' ? `Quitar aplazamiento de ${task.label}` : `Posponer ${task.label}`"
-        :title="reminder.status === 'snoozed' ? 'Quitar aplazamiento' : 'Posponer'"
+        :aria-label="reminder.status === 'snoozed' ? $t('urgency.unsnoozeTask', { task: task.label }) : $t('urgency.snoozeTask', { task: task.label })"
+        :title="reminder.status === 'snoozed' ? $t('urgency.unsnooze') : $t('urgency.snooze')"
         @click.stop="openSnooze"
       >
         <ion-icon :icon="alarmOutline" aria-hidden="true" />
@@ -26,8 +28,8 @@
         v-if="eventDate"
         type="button"
         class="action"
-        :aria-label="`Añadir ${task.label} a Google Calendar`"
-        title="Añadir a Google Calendar"
+        :aria-label="$t('urgency.calendarTask', { task: task.label })"
+        :title="$t('urgency.calendar')"
         @click.stop="addToCalendar"
       >
         <ion-icon :icon="calendarOutline" aria-hidden="true" />
@@ -40,6 +42,7 @@
 import { computed } from 'vue';
 import { actionSheetController, IonIcon, toastController } from '@ionic/vue';
 import { alarmOutline, calendarOutline } from 'ionicons/icons';
+import { t } from '@/i18n';
 import { formatDate, formatRate, reminderGauge, reminderHeadline, reminderLastLine, snoozeUntilText } from '@/domain/format';
 import { snoozeOptions } from '@/domain/snooze';
 import type { Reminder } from '@/domain/reminders';
@@ -76,10 +79,13 @@ async function openSnooze() {
   const r = props.reminder;
   if (r.status === 'snoozed') {
     const sheet = await actionSheetController.create({
-      header: `${task.value.label}: pospuesto ${r.snoozedUntil ? snoozeUntilText(r.snoozedUntil, r.unit) : ''}`,
+      header: t('urgency.snoozedHeader', {
+        task: task.value.label,
+        until: r.snoozedUntil ? snoozeUntilText(r.snoozedUntil, r.unit) : '',
+      }),
       buttons: [
-        { text: 'Quitar aplazamiento', handler: () => void store.unsnooze(r.vehicleId, r.taskId) },
-        { text: 'Cancelar', role: 'cancel' },
+        { text: t('urgency.unsnooze'), handler: () => void store.unsnooze(r.vehicleId, r.taskId) },
+        { text: t('common.cancel'), role: 'cancel' },
       ],
     });
     await sheet.present();
@@ -87,23 +93,23 @@ async function openSnooze() {
   }
   const km = store.currentKm.get(r.vehicleId) ?? null;
   const sheet = await actionSheetController.create({
-    header: `Recordarme ${task.value.label.toLowerCase()} dentro de…`,
-    subHeader: 'Mientras tanto no contará como pendiente ni te avisará.',
+    header: t('urgency.snoozeHeader', { task: task.value.label.toLowerCase() }),
+    subHeader: t('urgency.snoozeSub'),
     buttons: [
       ...snoozeOptions(r, km, store.today).map((o) => ({
         text: o.label,
         handler: () => {
           void store.snooze(r.vehicleId, r.taskId, o.until).then(async () => {
-            const t = await toastController.create({
-              message: `Pospuesto ${snoozeUntilText(o.until, r.unit)}`,
+            const toast = await toastController.create({
+              message: t('format.snoozed', { until: snoozeUntilText(o.until, r.unit) }),
               duration: 1800,
               position: 'top',
             });
-            await t.present();
+            await toast.present();
           });
         },
       })),
-      { text: 'Cancelar', role: 'cancel' },
+      { text: t('common.cancel'), role: 'cancel' },
     ],
   });
   await sheet.present();
@@ -116,7 +122,7 @@ function addToCalendar() {
     googleCalendarUrl({
       title: `${vehicle?.name ?? 'Garage'} · ${task.value.label}`,
       date: eventDate.value,
-      details: `${reminderHeadline(props.reminder)}\n\nCreado con Garage.`,
+      details: `${reminderHeadline(props.reminder)}\n\n${t('urgency.createdWith')}`,
     }),
   );
 }

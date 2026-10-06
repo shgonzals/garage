@@ -1,8 +1,8 @@
 <template>
-  <div class="lights" role="list" aria-label="Resumen de estado">
+  <div class="lights" role="list" :aria-label="$t('lights.summary')">
     <div v-for="l in lights" :key="l.tone" role="listitem" class="light" :class="[l.tone, { off: l.count === 0 }]">
       <span class="lamp" aria-hidden="true" />
-      <span class="text">{{ l.count }} {{ l.count === 1 ? l.one : l.many }}</span>
+      <span class="text">{{ $t(l.key, { n: l.count }, l.count) }}</span>
     </div>
   </div>
 </template>
@@ -17,9 +17,9 @@ const props = defineProps<{ reminders: Reminder[] }>();
 const lights = computed(() => {
   const count = (s: Reminder['status']) => props.reminders.filter((r) => r.status === s).length;
   return [
-    { tone: 'danger', count: count('overdue'), one: 'vencido', many: 'vencidos' },
-    { tone: 'warning', count: count('soon'), one: 'pronto', many: 'pronto' },
-    { tone: 'success', count: count('ok'), one: 'al día', many: 'al día' },
+    { tone: 'danger', count: count('overdue'), key: 'lights.overdue' },
+    { tone: 'warning', count: count('soon'), key: 'lights.soon' },
+    { tone: 'success', count: count('ok'), key: 'lights.ok' },
   ];
 });
 </script>

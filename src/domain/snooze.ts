@@ -2,6 +2,8 @@ import { addDays, addMonths, parseISO } from 'date-fns';
 import { toIsoDate } from './dates';
 import type { Reminder } from './reminders';
 import type { IsoDate, IsoDateTime, TaskId } from './types';
+import { formatNumber } from './format';
+import { t as tr } from '@/i18n';
 import { UNITS } from './units';
 
 /**
@@ -31,14 +33,13 @@ export function snoozeOptions(r: Reminder, currentKm: number | null, today: IsoD
   const date = (d: Date): SnoozeUntil => ({ date: toIsoDate(d), km: null });
   const t = parseISO(today);
   const options: SnoozeOption[] = [
-    { label: '1 semana', until: date(addDays(t, 7)) },
-    { label: '2 semanas', until: date(addDays(t, 14)) },
-    { label: '1 mes', until: date(addMonths(t, 1)) },
+    { label: tr('snooze.week'), until: date(addDays(t, 7)) },
+    { label: tr('snooze.twoWeeks'), until: date(addDays(t, 14)) },
+    { label: tr('snooze.month'), until: date(addMonths(t, 1)) },
   ];
   if (r.dueKm !== null && currentKm !== null) {
-    const fmt = (n: number) => new Intl.NumberFormat('es-ES', { useGrouping: 'always' as unknown as boolean }).format(n);
     for (const step of UNITS[r.unit].snoozeSteps) {
-      options.push({ label: `${fmt(step)} ${r.unit} más`, until: { date: null, km: currentKm + step } });
+      options.push({ label: tr('snooze.more', { n: formatNumber(step), unit: r.unit }), until: { date: null, km: currentKm + step } });
     }
   }
   return options;

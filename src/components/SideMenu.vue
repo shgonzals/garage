@@ -6,8 +6,8 @@
         <button
           type="button"
           class="icon-btn"
-          :aria-label="sidebarCollapsed ? 'Expandir menú' : 'Contraer menú'"
-          :title="sidebarCollapsed ? 'Expandir menú' : 'Contraer menú'"
+          :aria-label="sidebarCollapsed ? $t('nav.expand') : $t('nav.collapse')"
+          :title="sidebarCollapsed ? $t('nav.expand') : $t('nav.collapse')"
           :aria-expanded="!sidebarCollapsed"
           @click="sidebarCollapsed = !sidebarCollapsed"
         >
@@ -19,15 +19,15 @@
         type="button"
         class="log"
         :disabled="store.vehicles.length === 0"
-        :title="sidebarCollapsed ? 'Nuevo registro' : undefined"
-        aria-label="Nuevo registro"
+        :title="sidebarCollapsed ? $t('nav.newEntry') : undefined"
+        :aria-label="$t('nav.newEntry')"
         @click="router.push('/log')"
       >
         <ion-icon :icon="flash" aria-hidden="true" />
-        <span class="nav-label">Nuevo registro</span>
+        <span class="nav-label">{{ $t('nav.newEntry') }}</span>
       </button>
 
-      <nav aria-label="Secciones">
+      <nav :aria-label="$t('nav.sections')">
         <button
           v-for="item in NAV"
           :key="item.path"
@@ -35,17 +35,17 @@
           class="nav-item"
           :class="{ active: isActive(item.path) }"
           :aria-current="isActive(item.path) ? 'page' : undefined"
-          :title="sidebarCollapsed ? item.label : undefined"
+          :title="sidebarCollapsed ? $t(item.label) : undefined"
           @click="go(item.path)"
         >
           <span class="nav-icon"><ion-icon :icon="item.icon" aria-hidden="true" /></span>
-          <span class="nav-label">{{ item.label }}</span>
+          <span class="nav-label">{{ $t(item.label) }}</span>
           <span v-if="item.path === '/tabs/reminders' && overdueCount > 0" class="badge">{{ overdueCount }}</span>
         </button>
       </nav>
 
       <template v-if="store.vehicles.length > 0">
-        <h3 class="g-section-title vehicles-title">Vehículos</h3>
+        <h3 class="g-section-title vehicles-title">{{ $t('nav.vehicles') }}</h3>
         <button
           v-for="v in store.vehicles"
           :key="v.id"
@@ -64,11 +64,11 @@
         <button
           type="button"
           class="nav-item add"
-          :title="sidebarCollapsed ? 'Añadir vehículo' : undefined"
+          :title="sidebarCollapsed ? $t('common.addVehicle') : undefined"
           @click="router.push('/vehicles/new')"
         >
           <span class="nav-icon"><ion-icon :icon="add" aria-hidden="true" /></span>
-          <span class="nav-label">Añadir vehículo</span>
+          <span class="nav-label">{{ $t('common.addVehicle') }}</span>
         </button>
       </template>
     </ion-content>
@@ -88,10 +88,10 @@ import { STATUS_TONE } from './status';
 import VehicleAvatar from './VehicleAvatar.vue';
 
 const NAV = [
-  { path: '/tabs/garage', label: 'Mi garage', icon: carSportOutline },
-  { path: '/tabs/reminders', label: 'Recordatorios', icon: alarmOutline },
-  { path: '/tabs/stats', label: 'Gastos', icon: walletOutline },
-  { path: '/tabs/settings', label: 'Ajustes', icon: settingsOutline },
+  { path: '/tabs/garage', label: 'nav.garage', icon: carSportOutline },
+  { path: '/tabs/reminders', label: 'nav.reminders', icon: alarmOutline },
+  { path: '/tabs/stats', label: 'nav.stats', icon: walletOutline },
+  { path: '/tabs/settings', label: 'nav.settings', icon: settingsOutline },
 ];
 
 const store = useGarageStore();

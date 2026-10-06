@@ -3,6 +3,19 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones: [SemVer](https://semver.org/lang/es/)
 (antes de 1.0, cada versión con funciones nuevas sube el número del medio).
 
+## [0.5.0] — 2026-10-06
+
+### Añadido
+- **Widget de Android** con las tres tareas más urgentes de todos tus vehículos y un botón de registro
+  rápido. Tocar una tarea abre ese vehículo.
+- **Inglés**: la app sale en el idioma del móvil (español, o inglés para el resto). Se puede cambiar en
+  Ajustes → Idioma. Los avisos y el widget también se traducen.
+
+### Cambiado
+- **Borrar un vehículo borra todos sus datos**: registros, repostajes, km, plan, tareas propias y
+  aplazamientos. Al actualizar, también se limpian los datos que quedaron de vehículos borrados antes.
+- Las cifras con decimales (litros, importes) se pueden escribir con coma o con punto.
+
 ## [0.4.0] — 2026-10-06
 
 ### Añadido

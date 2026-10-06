@@ -33,6 +33,17 @@ function insert(table: string, row: Record<string, SqlValue>): SqlStatement {
 }
 
 /** Acceso a datos local. Todas las lecturas excluyen filas con borrado lógico. */
+/** Tablas que cuelgan de un vehículo por `vehicle_id` (se borran con él). */
+const VEHICLE_CHILD_TABLES = [
+  'odometer_readings',
+  'entries',
+  'fuel_logs',
+  'schedules',
+  'custom_tasks',
+  'snoozes',
+  'documents',
+] as const;
+
 export class GarageRepository {
   constructor(
     private readonly db: SqlDatabase,
@@ -112,9 +123,22 @@ export class GarageRepository {
     );
   }
 
+  /**
+   * Borra el vehículo con todo lo suyo (registros, km, repostajes, plan, tareas propias, aplazamientos,
+   * documentos), en una transacción. Borrado lógico para que la copia de seguridad propague el borrado;
+   * la foto se vacía porque ya no se va a mostrar.
+   */
   async deleteVehicle(id: string): Promise<void> {
     const ts = this.now();
-    await this.db.run('UPDATE vehicles SET deleted_at = ?, updated_at = ? WHERE id = ?', [ts, ts, id]);
+    const soft = (table: string, where = 'vehicle_id = ?'): SqlStatement => ({
+      sql: `UPDATE ${table} SET deleted_at = ?, updated_at = ? WHERE ${where} AND deleted_at IS NULL`,
+      params: [ts, ts, id],
+    });
+    await this.db.batch([
+      soft('entry_items', 'entry_id IN (SELECT id FROM entries WHERE vehicle_id = ?)'),
+      ...VEHICLE_CHILD_TABLES.map((t) => soft(t)),
+      { sql: 'UPDATE vehicles SET photo = NULL, deleted_at = ?, updated_at = ? WHERE id = ?', params: [ts, ts, id] },
+    ]);
   }
 
   // ── Odómetro ───────────────────────────────────────────────

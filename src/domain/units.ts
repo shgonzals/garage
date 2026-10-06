@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { VehicleType } from './types';
 
 /**
@@ -27,17 +28,29 @@ export interface UnitInfo {
 export const UNITS: Record<UsageUnit, UnitInfo> = {
   km: {
     short: 'km',
-    noun: 'los km',
-    title: 'Kilómetros',
-    current: 'Km actuales',
+    get noun() {
+      return t('units.km.noun');
+    },
+    get title() {
+      return t('units.km.title');
+    },
+    get current() {
+      return t('units.km.current');
+    },
     snoozeSteps: [500, 1000],
     maxPerDay: 1500,
   },
   h: {
     short: 'h',
-    noun: 'las horas',
-    title: 'Horas de motor',
-    current: 'Horas actuales',
+    get noun() {
+      return t('units.h.noun');
+    },
+    get title() {
+      return t('units.h.title');
+    },
+    get current() {
+      return t('units.h.current');
+    },
     snoozeSteps: [5, 10],
     maxPerDay: 24,
   },

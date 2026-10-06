@@ -1,10 +1,10 @@
 <template>
-  <ion-segment :value="mode" class="mode" aria-label="Qué vas a apuntar" @ion-change="go($event.detail.value)">
+  <ion-segment :value="mode" class="mode" :aria-label="$t('logMode.label')" @ion-change="go($event.detail.value)">
     <ion-segment-button value="maintenance">
-      <ion-label>🔧 Mantenimiento</ion-label>
+      <ion-label>🔧 {{ $t('logMode.maintenance') }}</ion-label>
     </ion-segment-button>
     <ion-segment-button value="fuel">
-      <ion-label>⛽ Repostaje</ion-label>
+      <ion-label>⛽ {{ $t('logMode.fuel') }}</ion-label>
     </ion-segment-button>
   </ion-segment>
 </template>

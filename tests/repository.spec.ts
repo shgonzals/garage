@@ -147,6 +147,43 @@ describe('GarageRepository', () => {
     expect(await db.query('SELECT * FROM vehicles')).toHaveLength(1);
   });
 
+  it('borrar un vehículo borra todos sus datos, y solo los suyos', async () => {
+    const v = await repo.createVehicle(newVehicle({ photo: 'data:image/jpeg;base64,/9j/AAAA' }), '2026-10-01');
+    const other = await repo.createVehicle(newVehicle(), '2026-10-01');
+    for (const id of [v.id, other.id]) {
+      await repo.createEntry({ vehicle_id: id, done_on: '2026-10-06', odometer_km: 12000, task_ids: ['oil'], cost: 50, notes: null });
+      await repo.createFuel({ vehicle_id: id, filled_on: '2026-10-06', odometer_km: 12100, liters: 10, cost: 17, full_tank: true, notes: null });
+      await repo.snooze(id, 'oil', { date: '2026-11-01', km: null });
+    }
+    await repo.createCustomTask(v.id, { label: 'Lavado', emoji: '🧽', interval_km: null, interval_days: 30 });
+
+    await repo.deleteVehicle(v.id);
+
+    for (const table of ['entries', 'entry_items', 'odometer_readings', 'fuel_logs', 'schedules', 'custom_tasks', 'snoozes']) {
+      const alive = await db.query<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table} WHERE deleted_at IS NULL`);
+      const others = await db.query<{ n: number }>(
+        table === 'entry_items'
+          ? `SELECT COUNT(*) AS n FROM entry_items WHERE deleted_at IS NULL AND entry_id IN (SELECT id FROM entries WHERE vehicle_id = ?)`
+          : `SELECT COUNT(*) AS n FROM ${table} WHERE deleted_at IS NULL AND vehicle_id = ?`,
+        [other.id],
+      );
+      expect(alive[0]!.n, table).toBe(others[0]!.n);
+    }
+    expect(await db.query('SELECT photo FROM vehicles WHERE id = ?', [v.id])).toEqual([{ photo: null }]);
+    expect(await repo.listFuelLogs()).toHaveLength(1);
+  });
+
+  it('migración 9: limpia los datos que dejaron vehículos borrados antes', async () => {
+    const v = await repo.createVehicle(newVehicle(), '2026-10-01');
+    await repo.createFuel({ vehicle_id: v.id, filled_on: '2026-10-06', odometer_km: 12100, liters: 10, cost: 17, full_tank: true, notes: null });
+    // Borrado "a la antigua": solo la fila del vehículo.
+    await db.run('UPDATE vehicles SET deleted_at = ? WHERE id = ?', ['2026-10-02T00:00:00.000Z', v.id]);
+    await db.run('DELETE FROM schema_migrations WHERE version = 9');
+    await migrate(db);
+    expect(await repo.listFuelLogs()).toEqual([]);
+    expect(await db.query('SELECT * FROM odometer_readings WHERE deleted_at IS NULL')).toEqual([]);
+  });
+
   it('guarda, cambia y quita la foto del vehículo', async () => {
     const jpeg = 'data:image/jpeg;base64,/9j/AAAA';
     const v = await repo.createVehicle(newVehicle({ photo: jpeg }), '2026-10-06');

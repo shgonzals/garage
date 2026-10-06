@@ -207,6 +207,29 @@ export const MIGRATIONS: readonly { version: number; sql: string; foreignKeysOff
       ALTER TABLE odometer_readings ADD COLUMN fuel_id TEXT REFERENCES fuel_logs(id);
     `,
   },
+  {
+    version: 9,
+    sql: `
+      -- Antes, borrar un vehículo dejaba vivos sus datos: se borran ahora con él.
+      UPDATE entry_items SET deleted_at = (SELECT v.deleted_at FROM entries e JOIN vehicles v ON v.id = e.vehicle_id WHERE e.id = entry_items.entry_id)
+        WHERE deleted_at IS NULL AND entry_id IN (SELECT e.id FROM entries e JOIN vehicles v ON v.id = e.vehicle_id WHERE v.deleted_at IS NOT NULL);
+      UPDATE odometer_readings SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = odometer_readings.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE entries SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = entries.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE fuel_logs SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = fuel_logs.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE schedules SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = schedules.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE custom_tasks SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = custom_tasks.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE snoozes SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = snoozes.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE documents SET deleted_at = (SELECT deleted_at FROM vehicles WHERE id = documents.vehicle_id)
+        WHERE deleted_at IS NULL AND vehicle_id IN (SELECT id FROM vehicles WHERE deleted_at IS NOT NULL);
+      UPDATE vehicles SET photo = NULL WHERE deleted_at IS NOT NULL;
+    `,
+  },
 ];
 
 export async function migrate(db: SqlDatabase): Promise<number> {

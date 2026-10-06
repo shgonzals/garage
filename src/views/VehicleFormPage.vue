@@ -5,9 +5,9 @@
         <ion-buttons slot="start">
           <ion-back-button :default-href="id ? `/vehicles/${id}` : '/tabs/garage'" text="" />
         </ion-buttons>
-        <ion-title>{{ id ? 'Editar vehículo' : 'Nuevo vehículo' }}</ion-title>
+        <ion-title>{{ id ? $t('vehicleForm.editTitle') : $t('vehicleForm.newTitle') }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button :strong="true" :disabled="saving" @click="save">Guardar</ion-button>
+          <ion-button :strong="true" :disabled="saving" @click="save">{{ $t('common.save') }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -16,16 +16,16 @@
       <form @submit.prevent="save">
         <!-- Foto de perfil (opcional) -->
         <div class="photo">
-          <button type="button" class="photo-btn" :aria-label="form.photo ? 'Cambiar foto' : 'Añadir foto'" @click="pickPhoto">
+          <button type="button" class="photo-btn" :aria-label="form.photo ? $t('vehicleForm.changePhoto') : $t('vehicleForm.addPhoto')" @click="pickPhoto">
             <VehicleAvatar :photo="form.photo" :type="form.type" :size="104" />
             <span class="photo-badge" aria-hidden="true"><ion-icon :icon="camera" /></span>
           </button>
           <div class="photo-actions">
             <ion-button fill="clear" size="small" :disabled="processing" @click="pickPhoto">
-              {{ processing ? 'Procesando…' : form.photo ? 'Cambiar foto' : 'Añadir foto' }}
+              {{ processing ? $t('vehicleForm.processing') : form.photo ? $t('vehicleForm.changePhoto') : $t('vehicleForm.addPhoto') }}
             </ion-button>
             <ion-button v-if="form.photo" fill="clear" size="small" color="medium" @click="form.photo = null">
-              Quitar
+              {{ $t('settings.removeButton') }}
             </ion-button>
           </div>
           <p v-if="errors.photo" class="g-error">{{ errors.photo }}</p>
@@ -34,8 +34,8 @@
           <input ref="cameraInput" type="file" accept="image/*" capture="environment" hidden @change="onPhotoSelected" />
         </div>
 
-        <h3 class="g-section-title">Tipo</h3>
-        <div class="types" role="radiogroup" aria-label="Tipo de vehículo">
+        <h3 class="g-section-title">{{ $t('vehicleForm.type') }}</h3>
+        <div class="types" role="radiogroup" :aria-label="$t('vehicleForm.typeAria')">
           <button
             v-for="t in VEHICLE_TYPES"
             :key="t.id"
@@ -52,19 +52,19 @@
         </div>
 
         <div class="fields">
-          <ion-input v-model="form.name" label="Nombre" label-placement="stacked" fill="outline" :placeholder="examples.name" :maxlength="60" />
+          <ion-input v-model="form.name" :label="$t('vehicleForm.name')" label-placement="stacked" fill="outline" :placeholder="examples.name" :maxlength="60" />
           <p v-if="errors.name" class="g-error">{{ errors.name }}</p>
 
           <div class="row">
-            <ion-input v-model="form.make" label="Marca" label-placement="stacked" fill="outline" :placeholder="examples.make" />
-            <ion-input v-model="form.model" label="Modelo" label-placement="stacked" fill="outline" :placeholder="examples.model" />
+            <ion-input v-model="form.make" :label="$t('vehicleForm.make')" label-placement="stacked" fill="outline" :placeholder="examples.make" />
+            <ion-input v-model="form.model" :label="$t('vehicleForm.model')" label-placement="stacked" fill="outline" :placeholder="examples.model" />
           </div>
 
           <div class="row">
             <ion-input
               v-if="onRoad"
               v-model="form.plate"
-              label="Matrícula"
+              :label="$t('vehicleForm.plate')"
               label-placement="stacked"
               fill="outline"
               placeholder="1234ABC"
@@ -85,30 +85,30 @@
           <ion-input
             v-if="onRoad"
             v-model="form.first_registration"
-            label="Primera matriculación"
+            :label="$t('vehicleForm.firstRegistration')"
             label-placement="stacked"
             fill="outline"
             type="date"
             :max="store.today"
-            helper-text="Para calcular cuándo te toca la ITV"
+            :helper-text="$t('vehicleForm.firstRegistrationHint')"
           />
           <p v-if="errors.first_registration" class="g-error">{{ errors.first_registration }}</p>
         </div>
 
         <!-- Vencimientos anuales (solo vehículos de carretera) -->
-        <h3 v-if="onRoad" class="g-section-title deadlines-title">Vencimientos</h3>
+        <h3 v-if="onRoad" class="g-section-title deadlines-title">{{ $t('vehicleForm.deadlines') }}</h3>
         <div v-if="onRoad" class="fields">
           <div class="row">
             <ion-input
               v-model="form.insurance_due"
-              label="Seguro: vence el"
+              :label="$t('vehicleForm.insuranceDue')"
               label-placement="stacked"
               fill="outline"
               type="date"
             />
             <ion-input
               v-model="form.road_tax_due"
-              label="Impuesto: vence el"
+              :label="$t('vehicleForm.roadTaxDue')"
               label-placement="stacked"
               fill="outline"
               type="date"
@@ -118,17 +118,16 @@
             {{ errors.insurance_due || errors.road_tax_due }}
           </p>
           <p class="g-secondary hint">
-            Te avisamos un mes antes. Al renovar, apúntalo en el registro rápido y el siguiente vencimiento se
-            calcula solo.
+            {{ $t('vehicleForm.deadlinesHint') }}
           </p>
         </div>
 
         <ion-button type="submit" expand="block" shape="round" size="large" class="save" :disabled="saving">
-          {{ id ? 'Guardar cambios' : 'Añadir al garage' }}
+          {{ id ? $t('common.saveChanges') : $t('vehicleForm.addToGarage') }}
         </ion-button>
 
         <ion-button v-if="id" expand="block" fill="clear" color="danger" class="delete" @click="remove">
-          Eliminar vehículo
+          {{ $t('vehicleForm.delete') }}
         </ion-button>
       </form>
     </ion-content>
@@ -161,6 +160,7 @@ import { unitInfo } from '@/domain/units';
 import type { VehicleType } from '@/domain/types';
 import { toSquareThumbnail } from '@/lib/image';
 import { useGarageStore } from '@/stores/garage';
+import { t as tr } from '@/i18n';
 
 const props = defineProps<{ id?: string }>();
 const store = useGarageStore();
@@ -208,11 +208,11 @@ async function pickPhoto() {
     return;
   }
   const sheet = await actionSheetController.create({
-    header: 'Foto del vehículo',
+    header: tr('vehicleForm.photoHeader'),
     buttons: [
-      { text: 'Hacer foto', icon: camera, handler: () => cameraInput.value?.click() },
-      { text: 'Elegir de la galería', icon: imagesOutline, handler: () => fileInput.value?.click() },
-      { text: 'Cancelar', role: 'cancel' },
+      { text: tr('vehicleForm.takePhoto'), icon: camera, handler: () => cameraInput.value?.click() },
+      { text: tr('vehicleForm.fromGallery'), icon: imagesOutline, handler: () => fileInput.value?.click() },
+      { text: tr('common.cancel'), role: 'cancel' },
     ],
   });
   await sheet.present();
@@ -228,7 +228,7 @@ async function onPhotoSelected(event: Event) {
     form.photo = await toSquareThumbnail(file);
     delete errors.value.photo;
   } catch {
-    errors.value = { ...errors.value, photo: 'No se pudo leer la imagen. Prueba con otra (JPG o PNG).' };
+    errors.value = { ...errors.value, photo: tr('vehicleForm.photoError') };
   } finally {
     processing.value = false;
   }
@@ -249,7 +249,7 @@ async function save() {
     return;
   }
   if (existingKm !== undefined && parsed.data.initial_km !== null && parsed.data.initial_km < existingKm) {
-    errors.value = { initial_km: 'No puede bajar de la lectura actual' };
+    errors.value = { initial_km: tr('vehicleForm.kmDown') };
     return;
   }
   errors.value = {};
@@ -270,11 +270,11 @@ async function save() {
 async function remove() {
   if (!props.id) return;
   const alert = await alertController.create({
-    header: `¿Eliminar ${existing?.name ?? 'vehículo'}?`,
-    message: 'Desaparecerá del garage junto con su historial.',
+    header: tr('vehicleForm.deleteHeader', { name: existing?.name ?? tr('common.vehicle') }),
+    message: tr('vehicleForm.deleteMessage'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Eliminar', role: 'destructive' },
+      { text: tr('common.cancel'), role: 'cancel' },
+      { text: tr('common.remove'), role: 'destructive' },
     ],
   });
   await alert.present();

@@ -11,14 +11,15 @@
 
     <ion-content class="ion-padding">
       <p class="g-secondary intro">
-        {{ info.noun === 'los km' ? 'Los km actuales' : 'Las horas actuales' }} de <strong>{{ vehicle?.name }}</strong> son la lectura más alta. Si alguna está mal, bórrala
-        aquí; las que vienen de un registro se corrigen editando ese registro.
+        <i18n-t :keypath="unit === 'km' ? 'odometer.introKm' : 'odometer.introHours'" scope="global">
+          <template #name><strong>{{ vehicle?.name }}</strong></template>
+        </i18n-t>
       </p>
 
       <form class="add" @submit.prevent="add">
         <ion-input
           v-model="kmText"
-          :label="`Nueva lectura (${unit})`"
+          :label="$t('odometer.newReading', { unit })"
           label-placement="stacked"
           fill="outline"
           type="number"
@@ -26,18 +27,17 @@
           :min="0"
           :placeholder="current !== null ? String(current) : '0'"
         />
-        <ion-button type="submit" shape="round" :disabled="saving">Añadir</ion-button>
+        <ion-button type="submit" shape="round" :disabled="saving">{{ $t('common.add') }}</ion-button>
       </form>
       <p v-if="error" class="g-error">{{ error }}</p>
 
       <p v-if="suspicious.size > 0" class="warning">
-        ⚠️ {{ suspicious.size === 1 ? 'Hay una lectura que no cuadra' : `Hay ${suspicious.size} lecturas que no cuadran` }}
-        con el resto. Seguramente sea un error al teclear.
+        ⚠️ {{ $t('odometer.suspicious', { n: suspicious.size }, suspicious.size) }}
       </p>
 
       <section class="g-section">
-        <h3 class="g-section-title">Historial · {{ readings.length }}</h3>
-        <p v-if="readings.length === 0" class="g-secondary">Aún no hay lecturas.</p>
+        <h3 class="g-section-title">{{ $t('odometer.history') }} · {{ readings.length }}</h3>
+        <p v-if="readings.length === 0" class="g-secondary">{{ $t('odometer.empty') }}</p>
         <div v-else class="g-card list">
           <div
             v-for="r in readings"
@@ -47,11 +47,11 @@
           >
             <div class="reading-main">
               <span class="reading-km">{{ formatUsage(r.km, unit) }}</span>
-              <span v-if="r.km === current" class="tag">Actual</span>
-              <span v-if="suspicious.has(r.id)" class="tag tag-bad">¿Error?</span>
+              <span v-if="r.km === current" class="tag">{{ $t('odometer.current') }}</span>
+              <span v-if="suspicious.has(r.id)" class="tag tag-bad">{{ $t('odometer.error') }}</span>
             </div>
             <div class="reading-sub g-secondary">
-              {{ formatDate(r.read_on) }} · {{ r.entry_id ? 'De un registro' : 'Manual' }}
+              {{ formatDate(r.read_on) }} · {{ r.entry_id ? $t('odometer.fromEntry') : r.fuel_id ? $t('odometer.fromFuel') : $t('odometer.manual') }}
             </div>
             <ion-button
               v-if="r.entry_id"
@@ -60,7 +60,16 @@
               size="small"
               :router-link="`/entries/${r.entry_id}/edit`"
             >
-              Editar registro
+              {{ $t('odometer.editEntry') }}
+            </ion-button>
+            <ion-button
+              v-else-if="r.fuel_id"
+              class="reading-action"
+              fill="clear"
+              size="small"
+              :router-link="`/fuel/${r.fuel_id}/edit`"
+            >
+              {{ $t('odometer.editFuel') }}
             </ion-button>
             <ion-button
               v-else
@@ -68,7 +77,7 @@
               fill="clear"
               size="small"
               color="danger"
-              :aria-label="`Borrar lectura de ${formatUsage(r.km, unit)}`"
+              :aria-label="$t('odometer.deleteAria', { value: formatUsage(r.km, unit) })"
               @click="remove(r)"
             >
               <ion-icon slot="icon-only" :icon="trashOutline" />
@@ -97,6 +106,7 @@ import {
 } from '@ionic/vue';
 import { trashOutline } from 'ionicons/icons';
 import { formatDate, formatUsage } from '@/domain/format';
+import { t } from '@/i18n';
 import { UNITS, usageUnit } from '@/domain/units';
 import { suspiciousReadings } from '@/domain/odometer';
 import type { OdometerReading } from '@/domain/types';
@@ -120,16 +130,16 @@ async function load() {
   readings.value = await store.listReadings(props.id);
 }
 // Recarga al volver de editar un registro (el store se recarga y cambian los km).
-watch(() => store.entries, load, { immediate: true });
+watch([() => store.entries, () => store.fuelLogs], load, { immediate: true });
 
 async function add() {
   const km = Number(String(kmText.value ?? '').trim());
   if (String(kmText.value ?? '').trim() === '' || !Number.isInteger(km) || km < 0) {
-    error.value = 'Introduce un número entero válido';
+    error.value = t('odometer.invalid');
     return;
   }
   if (current.value !== null && km < current.value) {
-    error.value = `Es menor que la lectura actual (${formatUsage(current.value, unit.value)}). Si esa está mal, bórrala primero.`;
+    error.value = t('odometer.lower', { value: formatUsage(current.value, unit.value) });
     return;
   }
   error.value = null;
@@ -145,11 +155,11 @@ async function add() {
 
 async function remove(r: OdometerReading) {
   const alert = await alertController.create({
-    header: `¿Borrar ${formatUsage(r.km, unit.value)}?`,
-    message: `Lectura del ${formatDate(r.read_on)}.`,
+    header: t('odometer.deleteHeader', { value: formatUsage(r.km, unit.value) }),
+    message: t('odometer.deleteMessage', { date: formatDate(r.read_on) }),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Borrar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.delete'), role: 'destructive' },
     ],
   });
   await alert.present();

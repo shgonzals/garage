@@ -8,6 +8,7 @@ import { openCapacitorDatabase } from './db/capacitor';
 import { migrate } from './db/migrations';
 import { GarageRepository } from './db/repository';
 import { useGarageStore } from './stores/garage';
+import { i18n, initLanguage, t } from './i18n';
 import { initTheme } from './theme/theme';
 
 /* Ionic: CSS básico + utilidades */
@@ -34,9 +35,10 @@ import './theme/variables.css';
 
 async function bootstrap() {
   initTheme();
+  initLanguage();
 
   const pinia = createPinia();
-  const app = createApp(App).use(IonicVue, { mode: 'ios' }).use(pinia).use(router);
+  const app = createApp(App).use(IonicVue, { mode: 'ios' }).use(pinia).use(router).use(i18n);
 
   const db = await openCapacitorDatabase();
   await migrate(db);
@@ -48,5 +50,5 @@ async function bootstrap() {
 
 bootstrap().catch((err) => {
   console.error(err);
-  document.body.innerHTML = `<pre style="padding:16px;white-space:pre-wrap;color:#dc2626">No se pudo abrir la base de datos:\n${String(err)}</pre>`;
+  document.body.innerHTML = `<pre style="padding:16px;white-space:pre-wrap;color:#dc2626">${t('app.dbError')}\n${String(err)}</pre>`;
 });

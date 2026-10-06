@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { BuiltinTaskId, CustomTask, CustomTaskId, TaskId, VehicleType } from './types';
 
 export interface Interval {
@@ -8,15 +9,14 @@ export interface Interval {
 export type TaskCategory = 'motor' | 'transmision' | 'frenos' | 'chasis' | 'electrico' | 'documentacion' | 'otros';
 
 /** Categorías en el orden en que se muestran (plan de mantenimiento, registro rápido). */
-export const TASK_CATEGORIES: readonly { id: TaskCategory; label: string }[] = [
-  { id: 'motor', label: 'Motor' },
-  { id: 'transmision', label: 'Transmisión' },
-  { id: 'frenos', label: 'Frenos' },
-  { id: 'chasis', label: 'Ruedas y chasis' },
-  { id: 'electrico', label: 'Eléctrico' },
-  { id: 'documentacion', label: 'Documentación' },
-  { id: 'otros', label: 'Otros' },
-];
+export const TASK_CATEGORIES: readonly { id: TaskCategory; label: string }[] = (
+  ['motor', 'transmision', 'frenos', 'chasis', 'electrico', 'documentacion', 'otros'] as const
+).map((id) => ({
+  id,
+  get label() {
+    return t(`categories.${id}`);
+  },
+}));
 
 export interface TaskDef {
   id: TaskId;
@@ -43,11 +43,10 @@ const SCOOTERS: readonly VehicleType[] = ['motorcycle', 'moped'];
 /** Vehículos de carretera (sin pit bike ni kart de circuito). */
 const ROAD: readonly VehicleType[] = ['motorcycle', 'moped', 'car', 'van'];
 
-export const TASKS: readonly TaskDef[] = [
+const TASK_DATA: readonly Omit<TaskDef, 'label'>[] = [
   // ── Motor ──
   {
     id: 'oil',
-    label: 'Aceite y filtro',
     emoji: '🛢️',
     category: 'motor',
     defaults: {
@@ -61,7 +60,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'air_filter',
-    label: 'Filtro de aire',
     emoji: '🌬️',
     category: 'motor',
     defaults: {
@@ -75,7 +73,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'spark_plugs',
-    label: 'Bujías',
     emoji: '⚡',
     category: 'motor',
     defaults: {
@@ -88,7 +85,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'coolant',
-    label: 'Refrigerante',
     emoji: '❄️',
     category: 'motor',
     defaults: {
@@ -99,7 +95,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'valves',
-    label: 'Reglaje de válvulas',
     emoji: '⚙️',
     category: 'motor',
     defaults: { motorcycle: { km: 24000, days: null } },
@@ -107,7 +102,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'timing_belt',
-    label: 'Correa de distribución',
     emoji: '🔗',
     category: 'motor',
     vehicles: ROAD,
@@ -115,7 +109,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'fuel_filter',
-    label: 'Filtro de gasolina',
     emoji: '⛽',
     category: 'motor',
     vehicles: ROAD,
@@ -124,7 +117,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'throttle_sync',
-    label: 'Sincronización de inyección',
     emoji: '🎚️',
     category: 'motor',
     vehicles: ['motorcycle'],
@@ -134,7 +126,6 @@ export const TASKS: readonly TaskDef[] = [
   // ── Transmisión ──
   {
     id: 'chain_lube',
-    label: 'Engrase de cadena',
     emoji: '⛓️',
     category: 'transmision',
     vehicles: CHAIN,
@@ -147,7 +138,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'chain_tension',
-    label: 'Tensión de cadena',
     emoji: '🔧',
     category: 'transmision',
     vehicles: CHAIN,
@@ -160,7 +150,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'chain_kit',
-    label: 'Kit de arrastre',
     emoji: '🛠️',
     category: 'transmision',
     vehicles: CHAIN,
@@ -174,7 +163,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'clutch_fluid',
-    label: 'Líquido de embrague',
     emoji: '💧',
     category: 'transmision',
     vehicles: ['motorcycle', 'pitbike'],
@@ -183,7 +171,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'drive_belt',
-    label: 'Correa de transmisión',
     emoji: '➰',
     category: 'transmision',
     vehicles: SCOOTERS,
@@ -192,7 +179,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'variator_rollers',
-    label: 'Rodillos del variador',
     emoji: '🔘',
     category: 'transmision',
     vehicles: SCOOTERS,
@@ -201,7 +187,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'gear_oil',
-    label: 'Aceite de transmisión',
     emoji: '🫙',
     category: 'transmision',
     defaults: {},
@@ -217,7 +202,6 @@ export const TASKS: readonly TaskDef[] = [
   // ── Frenos ──
   {
     id: 'brake_fluid',
-    label: 'Líquido de frenos',
     emoji: '🩸',
     category: 'frenos',
     defaults: {
@@ -229,13 +213,12 @@ export const TASKS: readonly TaskDef[] = [
       kart: { km: null, days: YEAR },
     },
   },
-  { id: 'brake_pads', label: 'Pastillas de freno', emoji: '🛑', category: 'frenos', defaults: {} },
-  { id: 'brake_discs', label: 'Discos de freno', emoji: '💿', category: 'frenos', defaults: {} },
+  { id: 'brake_pads', emoji: '🛑', category: 'frenos', defaults: {} },
+  { id: 'brake_discs', emoji: '💿', category: 'frenos', defaults: {} },
   // ── Ruedas y chasis ──
-  { id: 'tires', label: 'Neumáticos', emoji: '🛞', category: 'chasis', defaults: {} },
+  { id: 'tires', emoji: '🛞', category: 'chasis', defaults: {} },
   {
     id: 'fork_oil',
-    label: 'Aceite de horquilla',
     emoji: '🧪',
     category: 'chasis',
     vehicles: TWO_WHEELS,
@@ -248,7 +231,6 @@ export const TASKS: readonly TaskDef[] = [
   },
   {
     id: 'steering_bearings',
-    label: 'Rodamientos de dirección',
     emoji: '🧭',
     category: 'chasis',
     vehicles: TWO_WHEELS,
@@ -256,23 +238,30 @@ export const TASKS: readonly TaskDef[] = [
     suggested: { motorcycle: { km: 30000, days: null }, moped: { km: 20000, days: null } },
   },
   // ── Eléctrico ──
-  { id: 'battery', label: 'Batería', emoji: '🔋', category: 'electrico', defaults: {} },
+  { id: 'battery', emoji: '🔋', category: 'electrico', defaults: {} },
   // ── Documentación ──
   // La ITV no usa schedule: su próxima fecha la calcula domain/itv.ts.
-  { id: 'itv', label: 'ITV', emoji: '📋', category: 'documentacion', vehicles: ROAD, defaults: {} },
+  { id: 'itv', emoji: '📋', category: 'documentacion', vehicles: ROAD, defaults: {} },
   // Vencimientos anuales: su fecha la calcula domain/deadlines.ts; se renuevan registrándolos.
-  { id: 'insurance', label: 'Seguro', emoji: '🛡️', category: 'documentacion', vehicles: ROAD, defaults: {} },
+  { id: 'insurance', emoji: '🛡️', category: 'documentacion', vehicles: ROAD, defaults: {} },
   {
     id: 'road_tax',
-    label: 'Impuesto de circulación',
     emoji: '🏛️',
     category: 'documentacion',
     vehicles: ROAD,
     defaults: {},
   },
   // ── Otros ──
-  { id: 'other', label: 'Otro', emoji: '📝', category: 'otros', defaults: {} },
+  { id: 'other', emoji: '📝', category: 'otros', defaults: {} },
 ];
+
+/** Catálogo con el nombre de cada tarea en el idioma actual. */
+export const TASKS: readonly TaskDef[] = TASK_DATA.map((d) =>
+  Object.defineProperty({ ...d }, 'label', {
+    get: () => t(`tasks.${d.id as BuiltinTaskId}`),
+    enumerable: true,
+  }) as TaskDef,
+);
 
 /** Tareas que van por fecha propia (no por intervalo): no se configuran en el plan. */
 export const DATED_TASKS: readonly TaskId[] = ['itv', 'insurance', 'road_tax'];
@@ -313,7 +302,7 @@ export function getTask(id: TaskId): TaskDef {
   const task = BY_ID.get(id) ?? customById.get(id);
   if (task) return task;
   // Tarea personalizada aún no cargada (o de una copia a medio importar): no romper la pantalla.
-  if (isCustomTaskId(id)) return { id, label: 'Tarea personalizada', emoji: '🔧', category: 'otros', defaults: {} };
+  if (isCustomTaskId(id)) return { id, label: t('tasks.custom'), emoji: '🔧', category: 'otros', defaults: {} };
   throw new Error(`Tarea desconocida: ${id}`);
 }
 
@@ -333,14 +322,22 @@ export function defaultSchedulesFor(type: VehicleType): { taskId: TaskId; interv
   });
 }
 
-export const VEHICLE_TYPES: readonly { id: VehicleType; label: string; emoji: string }[] = [
-  { id: 'motorcycle', label: 'Moto / Quad', emoji: '🏍️' },
-  { id: 'moped', label: 'Ciclomotor', emoji: '🛵' },
-  { id: 'car', label: 'Turismo', emoji: '🚗' },
-  { id: 'van', label: 'Furgoneta (N1)', emoji: '🚐' },
-  { id: 'pitbike', label: 'Pit bike / Cross', emoji: '🏁' },
-  { id: 'kart', label: 'Kart', emoji: '🏎️' },
-];
+export const VEHICLE_TYPES: readonly { id: VehicleType; label: string; emoji: string }[] = (
+  [
+    ['motorcycle', '🏍️'],
+    ['moped', '🛵'],
+    ['car', '🚗'],
+    ['van', '🚐'],
+    ['pitbike', '🏁'],
+    ['kart', '🏎️'],
+  ] as const
+).map(([id, emoji]) => ({
+  id,
+  emoji,
+  get label() {
+    return t(`vehicleTypes.${id}`);
+  },
+}));
 
 /** Circula por vía pública: tiene matrícula, ITV, seguro e impuesto. */
 export function isRoadVehicle(type: VehicleType): boolean {

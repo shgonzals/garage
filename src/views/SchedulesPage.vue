@@ -5,21 +5,23 @@
         <ion-buttons slot="start">
           <ion-back-button :default-href="`/vehicles/${id}`" text="" />
         </ion-buttons>
-        <ion-title>Plan de mantenimiento</ion-title>
+        <ion-title>{{ $t('plan.title') }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button :strong="true" :disabled="saving" @click="save">Guardar</ion-button>
+          <ion-button :strong="true" :disabled="saving" @click="save">{{ $t('common.save') }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
       <p class="g-secondary intro">
-        {{ unit === 'km' ? 'Cada cuántos km' : 'Cada cuántas horas' }} o años toca cada tarea en <strong>{{ vehicle?.name }}</strong>. Lo que llegue antes manda.
-        <template v-if="isRoadVehicle(vehicleType)">ITV, seguro e impuesto van por fecha: se configuran en el vehículo.</template>
+        <i18n-t :keypath="unit === 'km' ? 'plan.introKm' : 'plan.introHours'" scope="global">
+          <template #name><strong>{{ vehicle?.name }}</strong></template>
+        </i18n-t>
+        <template v-if="isRoadVehicle(vehicleType)">{{ ' ' + $t('plan.introDated') }}</template>
       </p>
 
       <p v-if="activeGroups.length === 0" class="g-secondary empty">
-        Aún no hay tareas en el plan. Añádelas desde el catálogo.
+        {{ $t('plan.empty') }}
       </p>
 
       <!-- Tareas activas, por categoría -->
@@ -39,29 +41,29 @@
                 type="button"
                 class="task-summary"
                 :aria-expanded="row.open"
-                :aria-label="`${taskLabel(row.taskId)}: ${intervalSummary(row)}. Editar`"
+                :aria-label="$t('plan.rowAria', { task: taskLabel(row.taskId), interval: intervalSummary(row) })"
                 @click="row.open = !row.open"
               >
                 <span class="task-label">{{ taskEmoji(row.taskId) }} {{ taskLabel(row.taskId) }}</span>
                 <span class="task-interval">{{ intervalSummary(row) }}</span>
               </button>
               <ion-icon class="chevron" :icon="row.open ? chevronUp : chevronDown" aria-hidden="true" />
-              <ion-toggle v-model="row.enabled" :aria-label="`Activar ${taskLabel(row.taskId)}`" />
+              <ion-toggle v-model="row.enabled" :aria-label="$t('plan.enable', { task: taskLabel(row.taskId) })" />
             </div>
             <template v-if="row.open">
               <div v-if="row.enabled" class="row">
-                <ion-input v-model="row.km" :label="`Cada (${unit})`" label-placement="stacked" fill="outline" type="number" inputmode="numeric" placeholder="—" :min="1" />
-                <ion-input v-model="row.years" label="Cada (años)" label-placement="stacked" fill="outline" type="number" inputmode="decimal" placeholder="—" :min="0.5" step="0.5" />
+                <ion-input v-model="row.km" :label="$t('plan.every', { unit })" label-placement="stacked" fill="outline" type="number" inputmode="numeric" placeholder="—" :min="1" />
+                <ion-input v-model="row.years" :label="$t('plan.everyYears')" label-placement="stacked" fill="outline" type="number" inputmode="decimal" placeholder="—" :min="0.5" step="0.5" />
               </div>
-              <p v-if="row.enabled && row.suggested" class="g-secondary suggested">Valor orientativo: revisa el manual.</p>
+              <p v-if="row.enabled && row.suggested" class="g-secondary suggested">{{ $t('plan.suggested') }}</p>
               <div v-if="isCustomTaskId(row.taskId)" class="custom-actions">
                 <ion-button fill="clear" size="small" @click="rename(row)">
                   <ion-icon slot="start" :icon="createOutline" />
-                  Renombrar
+                  {{ $t('plan.rename') }}
                 </ion-button>
                 <ion-button fill="clear" size="small" color="danger" @click="removeTask(row)">
                   <ion-icon slot="start" :icon="trashOutline" />
-                  Borrar
+                  {{ $t('common.delete') }}
                 </ion-button>
               </div>
             </template>
@@ -74,8 +76,8 @@
       <section class="g-section catalog">
         <button type="button" class="catalog-toggle" :aria-expanded="catalogOpen" @click="catalogOpen = !catalogOpen">
           <ion-icon :icon="catalogOpen ? removeIcon : addIcon" aria-hidden="true" />
-          <span>Catálogo de tareas</span>
-          <span class="g-muted catalog-count">{{ available.length }} del catálogo</span>
+          <span>{{ $t('plan.catalog') }}</span>
+          <span class="g-muted catalog-count">{{ $t('plan.catalogCount', { n: available.length }) }}</span>
         </button>
 
         <div v-if="catalogOpen" class="catalog-body">
@@ -89,20 +91,20 @@
               </button>
             </div>
           </div>
-          <p v-if="available.length === 0" class="g-secondary">Ya tienes todo el catálogo en el plan.</p>
+          <p v-if="available.length === 0" class="g-secondary">{{ $t('plan.catalogDone') }}</p>
 
           <!-- Tarea propia: se crea al momento, sin esperar a "Guardar" -->
           <form class="g-card task new" @submit.prevent="addTask">
-            <div class="task-label">Crear tarea propia</div>
+            <div class="task-label">{{ $t('plan.newTask') }}</div>
             <ion-input
               v-model="draft.label"
-              label="Nombre"
+              :label="$t('vehicleForm.name')"
               label-placement="stacked"
               fill="outline"
-              placeholder="Escobillas, cubrecárter…"
+              :placeholder="$t('plan.newTaskPlaceholder')"
               :maxlength="40"
             />
-            <div class="emojis" role="radiogroup" aria-label="Icono">
+            <div class="emojis" role="radiogroup" :aria-label="$t('plan.icon')">
               <button
                 v-for="e in CUSTOM_TASK_EMOJIS"
                 :key="e"
@@ -117,13 +119,13 @@
               </button>
             </div>
             <div class="row">
-              <ion-input v-model="draft.km" :label="`Cada (${unit})`" label-placement="stacked" fill="outline" type="number" inputmode="numeric" placeholder="—" :min="1" />
-              <ion-input v-model="draft.years" label="Cada (años)" label-placement="stacked" fill="outline" type="number" inputmode="decimal" placeholder="—" :min="0.5" step="0.5" />
+              <ion-input v-model="draft.km" :label="$t('plan.every', { unit })" label-placement="stacked" fill="outline" type="number" inputmode="numeric" placeholder="—" :min="1" />
+              <ion-input v-model="draft.years" :label="$t('plan.everyYears')" label-placement="stacked" fill="outline" type="number" inputmode="decimal" placeholder="—" :min="0.5" step="0.5" />
             </div>
             <p v-if="draft.error" class="g-error">{{ draft.error }}</p>
             <ion-button type="submit" expand="block" class="add-custom" :disabled="adding">
               <ion-icon slot="start" :icon="addIcon" />
-              Crear tarea
+              {{ $t('plan.create') }}
             </ion-button>
           </form>
         </div>
@@ -151,7 +153,8 @@ import {
   useIonRouter,
 } from '@ionic/vue';
 import { add as addIcon, chevronDown, chevronUp, createOutline, remove as removeIcon, trashOutline } from 'ionicons/icons';
-import { formatNumber } from '@/domain/format';
+import { formatDecimal, formatNumber, parseDecimal } from '@/domain/format';
+import { t } from '@/i18n';
 import { customTaskInputSchema, scheduleInputSchema, type ScheduleInput } from '@/domain/schemas';
 import {
   CUSTOM_TASK_EMOJIS,
@@ -217,14 +220,14 @@ function rowFor(taskId: TaskId, forceShown = false): Row {
 
 /** Resumen de una línea: "Cada 6.000 km · 1 año", "Cada 2 años", "Sin intervalo". */
 function intervalSummary(row: Row): string {
-  if (!row.enabled) return 'Desactivada';
+  if (!row.enabled) return t('plan.disabled');
   const km = toNumber(row.km);
   const years = toNumber(row.years);
   const parts = [
     km ? `${formatNumber(km)} ${unit}` : null,
-    years ? `${String(years).replace('.', ',')} ${years === 1 ? 'año' : 'años'}` : null,
+    years ? t('format.years', { n: formatDecimal(years) }, years === 1 ? 1 : 2) : null,
   ].filter(Boolean);
-  return parts.length > 0 ? `Cada ${parts.join(' · ')}` : 'Sin intervalo';
+  return parts.length > 0 ? t('format.every', { interval: parts.join(' · ') }).replace(/^./, (c) => c.toUpperCase()) : t('plan.noInterval');
 }
 
 // Catálogo aplicable al tipo de vehículo + cualquier tarea que ya tuviera plan (p. ej. si cambió de tipo).
@@ -236,10 +239,13 @@ const rows = reactive<Row[]>([
 ]);
 
 const categoryOf = (id: TaskId): string => (isCustomTaskId(id) ? 'propias' : getTask(id).category);
-const GROUPS = [...TASK_CATEGORIES.filter((c) => c.id !== 'otros'), { id: 'propias', label: 'Tus tareas' }];
+const GROUPS = computed(() => [
+  ...TASK_CATEGORIES.filter((c) => c.id !== 'otros'),
+  { id: 'propias', label: t('plan.yourTasks') },
+]);
 
 function grouped(list: Row[]) {
-  return GROUPS.map((g) => ({ ...g, rows: list.filter((r) => categoryOf(r.taskId) === g.id) })).filter(
+  return GROUPS.value.map((g) => ({ ...g, rows: list.filter((r) => categoryOf(r.taskId) === g.id) })).filter(
     (g) => g.rows.length > 0,
   );
 }
@@ -274,8 +280,7 @@ async function activate(row: Row) {
 }
 
 function toNumber(text: string | number): number | null {
-  const s = String(text ?? '').trim().replace(',', '.');
-  return s === '' ? null : Number(s);
+  return parseDecimal(text);
 }
 
 function yearsToDays(text: string | number): number | null {
@@ -284,8 +289,8 @@ function yearsToDays(text: string | number): number | null {
 }
 
 async function toast(message: string) {
-  const t = await toastController.create({ message, color: 'success', duration: 1500, position: 'top' });
-  await t.present();
+  const toastEl = await toastController.create({ message, color: 'success', duration: 1500, position: 'top' });
+  await toastEl.present();
 }
 
 // ── Tarea propia ──
@@ -296,7 +301,7 @@ async function addTask() {
   const km = toNumber(draft.km);
   const days = yearsToDays(draft.years);
   if ((km !== null && !(km > 0)) || (days !== null && !(days > 0))) {
-    draft.error = 'Usa números mayores que 0';
+    draft.error = t('plan.positive');
     return;
   }
   const parsed = customTaskInputSchema.safeParse({
@@ -306,7 +311,8 @@ async function addTask() {
     interval_days: days,
   });
   if (!parsed.success) {
-    draft.error = parsed.error.issues[0]?.message ?? 'Revisa los datos';
+    const message = parsed.error.issues[0]?.message;
+    draft.error = message?.startsWith('validation.') ? t(message) : (message ?? t('plan.checkData'));
     return;
   }
   draft.error = null;
@@ -316,7 +322,7 @@ async function addTask() {
     planned.add(task.id);
     rows.push({ taskId: task.id, enabled: true, shown: true, km: draft.km, years: draft.years, suggested: false, open: false, error: null });
     Object.assign(draft, { label: '', km: '', years: '' });
-    await toast(`${task.label}: añadida al plan`);
+    await toast(t('plan.added', { task: task.label }));
   } finally {
     adding.value = false;
   }
@@ -325,11 +331,11 @@ async function addTask() {
 async function rename(row: Row) {
   const id = row.taskId as CustomTaskId;
   const alert = await alertController.create({
-    header: 'Renombrar tarea',
+    header: t('plan.renameHeader'),
     inputs: [{ name: 'label', type: 'text', value: taskLabel(id), attributes: { maxlength: 40 } }],
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Guardar', role: 'confirm' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.save'), role: 'confirm' },
     ],
   });
   await alert.present();
@@ -342,11 +348,11 @@ async function rename(row: Row) {
 async function removeTask(row: Row) {
   const id = row.taskId as CustomTaskId;
   const alert = await alertController.create({
-    header: `¿Borrar «${taskLabel(id)}»?`,
-    message: 'Saldrá del plan. Los registros donde la apuntaste se conservan.',
+    header: t('plan.deleteHeader', { task: taskLabel(id) }),
+    message: t('plan.deleteMessage'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Borrar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.delete'), role: 'destructive' },
     ],
   });
   await alert.present();
@@ -368,13 +374,13 @@ async function save() {
       enabled: row.enabled,
     });
     if (!parsed.success) {
-      row.error = 'Usa números mayores que 0';
+      row.error = t('plan.positive');
       row.open = true;
       valid = false;
       continue;
     }
     if (parsed.data.enabled && !parsed.data.interval_km && !parsed.data.interval_days) {
-      row.error = `Indica ${unit === 'km' ? 'km' : 'horas'}, años o ambos`;
+      row.error = t(unit === 'km' ? 'plan.needIntervalKm' : 'plan.needIntervalHours');
       row.open = true;
       valid = false;
       continue;

@@ -9,18 +9,20 @@
     </svg>
 
     <div class="center">
-      <span class="caption">{{ unit === 'km' ? 'Odómetro' : 'Horas de motor' }}</span>
-      <button type="button" class="digits" :aria-label="`${km ?? 'Sin'} ${unit}. Actualizar`" @click="$emit('update')">
+      <span class="caption">{{ unit === 'km' ? $t('cluster.odometer') : $t('units.h.title') }}</span>
+      <button type="button" class="digits" :aria-label="$t('cluster.updateAria', { value: km ?? '—', unit })" @click="$emit('update')">
         <span v-for="(d, i) in digits" :key="i" class="digit" :class="{ lead: d.lead, last: i === digits.length - 1 }">
           {{ d.char }}
         </span>
         <span class="unit">{{ unit }}</span>
       </button>
       <span v-if="next" class="next">
-        {{ next.status === 'overdue' ? 'Vencido' : 'Próximo' }} · <strong>{{ nextText }}</strong>
+        {{ next.status === 'overdue' ? $t('cluster.overdue') : $t('cluster.next') }} · <strong>{{ nextText }}</strong>
       </span>
-      <span v-else class="next">Sin mantenimientos programados</span>
-      <button type="button" class="update" @click="$emit('update')">Actualizar {{ unit === 'km' ? 'km' : 'horas' }}</button>
+      <span v-else class="next">{{ $t('cluster.nothingPlanned') }}</span>
+      <button type="button" class="update" @click="$emit('update')">
+        {{ unit === 'km' ? $t('cluster.updateKm') : $t('cluster.updateHours') }}
+      </button>
     </div>
   </div>
 </template>

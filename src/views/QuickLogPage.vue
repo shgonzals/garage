@@ -5,9 +5,9 @@
         <ion-buttons slot="start">
           <ion-back-button default-href="/tabs/garage" text="" />
         </ion-buttons>
-        <ion-title>{{ editing ? 'Editar registro' : 'Registro rápido' }}</ion-title>
+        <ion-title>{{ editing ? $t('odometer.editEntry') : $t('quickLog.title') }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button :strong="true" :disabled="saving" @click="save">Guardar</ion-button>
+          <ion-button :strong="true" :disabled="saving" @click="save">{{ $t('common.save') }}</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -15,13 +15,13 @@
     <ion-content class="ion-padding">
       <div v-if="entryId && !editing" class="g-empty">
         <div class="g-empty-emoji">🤷</div>
-        <h2>Registro no encontrado</h2>
+        <h2>{{ $t('quickLog.notFound') }}</h2>
       </div>
 
       <div v-else-if="store.vehicles.length === 0" class="g-empty">
         <div class="g-empty-emoji">🏍️</div>
-        <h2>Primero añade un vehículo</h2>
-        <ion-button router-link="/vehicles/new" shape="round">Añadir vehículo</ion-button>
+        <h2>{{ $t('common.addVehicleFirst') }}</h2>
+        <ion-button router-link="/vehicles/new" shape="round">{{ $t('common.addVehicle') }}</ion-button>
       </div>
 
       <form v-else @submit.prevent="save">
@@ -35,7 +35,7 @@
           <ion-input
             v-model="kmText"
             class="big-input"
-            :label="unit === 'km' ? 'Km' : 'Horas'"
+            :label="unit === 'km' ? $t('common.km') : $t('common.hours')"
             label-placement="stacked"
             fill="outline"
             type="number"
@@ -46,7 +46,7 @@
           <ion-input
             v-model="doneOn"
             class="date-input"
-            label="Fecha"
+            :label="$t('common.date')"
             label-placement="stacked"
             fill="outline"
             type="date"
@@ -57,7 +57,7 @@
         <p v-if="errors.done_on" class="g-error">{{ errors.done_on }}</p>
 
         <!-- Tareas -->
-        <h3 class="g-section-title tasks-title">¿Qué has hecho?</h3>
+        <h3 class="g-section-title tasks-title">{{ $t('quickLog.whatDone') }}</h3>
         <!-- Lo relevante: lo que toca ahora, lo del plan y lo ya marcado -->
         <div class="tasks">
           <button
@@ -84,17 +84,17 @@
           @click="moreOpen = !moreOpen"
         >
           <ion-icon :icon="moreOpen ? removeIcon : addIcon" aria-hidden="true" />
-          Más tareas
+          {{ $t('quickLog.moreTasks') }}
           <span class="g-muted more-count">{{ otherTasks.length }}</span>
         </button>
         <div v-if="moreOpen" class="more">
           <ion-input
             v-model="search"
             class="search"
-            label="Buscar tarea"
+            :label="$t('quickLog.search')"
             label-placement="stacked"
             fill="outline"
-            placeholder="Horquilla, embrague…"
+            :placeholder="$t('quickLog.searchPlaceholder')"
             :clear-input="true"
           />
           <div v-for="group in otherGroups" :key="group.id" class="more-group">
@@ -113,36 +113,36 @@
               </button>
             </div>
           </div>
-          <p v-if="otherGroups.length === 0" class="g-secondary">Ninguna tarea coincide con «{{ search }}».</p>
+          <p v-if="otherGroups.length === 0" class="g-secondary">{{ $t('quickLog.noMatch', { q: search }) }}</p>
         </div>
 
         <!-- Opcional -->
         <div class="row optional">
           <ion-input
             v-model="costText"
-            label="Coste (€)"
+            :label="$t('quickLog.cost')"
             label-placement="stacked"
             fill="outline"
             inputmode="decimal"
-            placeholder="Opcional"
+            :placeholder="$t('common.optional')"
           />
         </div>
         <p v-if="errors.cost" class="g-error">{{ errors.cost }}</p>
         <ion-textarea
           v-model="notes"
           class="notes"
-          label="Notas"
+          :label="$t('common.notes')"
           label-placement="stacked"
           fill="outline"
           :auto-grow="true"
-          placeholder="Taller, marca del aceite…"
+          :placeholder="$t('quickLog.notesPlaceholder')"
         />
 
         <ion-button type="submit" expand="block" shape="round" size="large" class="save" :disabled="saving">
-          {{ editing ? 'Guardar cambios' : 'Guardar registro' }}
+          {{ editing ? $t('common.saveChanges') : $t('quickLog.save') }}
         </ion-button>
         <ion-button v-if="editing" expand="block" fill="clear" color="danger" class="delete" @click="remove">
-          Borrar registro
+          {{ $t('detail.deleteEntry') }}
         </ion-button>
       </form>
     </ion-content>
@@ -173,7 +173,9 @@ import LogModeSwitch from '@/components/LogModeSwitch.vue';
 import VehiclePicker from '@/components/VehiclePicker.vue';
 import { fieldErrors, quickLogSchema } from '@/domain/schemas';
 import { getTask, TASK_CATEGORIES } from '@/domain/tasks';
-import { usageUnit } from '@/domain/units';
+import { formatDecimal, parseDecimal } from '@/domain/format';
+import { t } from '@/i18n';
+import { UNITS, usageUnit } from '@/domain/units';
 import type { TaskId } from '@/domain/types';
 import { useGarageStore } from '@/stores/garage';
 
@@ -197,7 +199,7 @@ const unit = computed(() => usageUnit(store.vehicleById.get(vehicleId.value)?.ty
 const kmText = ref(editing ? (editing.odometer_km?.toString() ?? '') : kmFor(initialVehicle));
 const doneOn = ref(editing?.done_on ?? store.today);
 const selected = ref(new Set<TaskId>(editing?.items.map((i) => i.task_id)));
-const costText = ref(editing?.cost_cents != null ? String(editing.cost_cents / 100).replace('.', ',') : '');
+const costText = ref(editing?.cost_cents != null ? formatDecimal(editing.cost_cents / 100, 2) : '');
 const notes = ref(editing?.notes ?? '');
 const errors = ref<Record<string, string>>({});
 const saving = ref(false);
@@ -267,20 +269,13 @@ function toggle(id: TaskId) {
   selected.value = next;
 }
 
-function parseNumber(text: string | number | null | undefined): number | null {
-  // "1.234,50" → 1234.5 (es-ES); "65.5" también vale.
-  let s = String(text ?? '').trim();
-  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
-  return s === '' ? null : Number(s);
-}
-
 async function save() {
   const parsed = quickLogSchema.safeParse({
     vehicle_id: vehicleId.value,
     done_on: doneOn.value,
-    odometer_km: parseNumber(kmText.value),
+    odometer_km: parseDecimal(kmText.value),
     task_ids: [...selected.value],
-    cost: parseNumber(costText.value),
+    cost: parseDecimal(costText.value),
     notes: notes.value,
   });
   if (!parsed.success) {
@@ -292,7 +287,7 @@ async function save() {
   try {
     if (editing) await store.updateEntry(editing.id, parsed.data);
     else await store.logEntry(parsed.data);
-    leave(parsed.data.vehicle_id, editing ? 'Cambios guardados ✓' : 'Registro guardado ✓');
+    leave(parsed.data.vehicle_id, editing ? t('common.changesSaved') : t('quickLog.saved'));
   } finally {
     saving.value = false;
   }
@@ -301,18 +296,18 @@ async function save() {
 async function remove() {
   if (!editing) return;
   const alert = await alertController.create({
-    header: '¿Borrar registro?',
-    message: editing.odometer_km !== null ? 'También se quitarán los km que apuntaste en él.' : undefined,
+    header: t('detail.deleteEntryHeader'),
+    message: editing.odometer_km !== null ? t('detail.deleteEntryMessage', { what: UNITS[unit.value].noun }) : undefined,
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Borrar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.delete'), role: 'destructive' },
     ],
   });
   await alert.present();
   const { role } = await alert.onDidDismiss();
   if (role !== 'destructive') return;
   await store.deleteEntry(editing.id);
-  leave(editing.vehicle_id, 'Registro borrado');
+  leave(editing.vehicle_id, t('quickLog.deleted'));
 }
 
 function leave(vehicleId: string, message: string) {

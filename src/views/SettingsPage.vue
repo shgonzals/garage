@@ -2,20 +2,32 @@
   <ion-page class="g-narrow">
     <ion-header>
       <ion-toolbar>
-        <ion-title>Ajustes</ion-title>
+        <ion-title>{{ $t('nav.settings') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Ajustes</ion-title>
+          <ion-title size="large">{{ $t('nav.settings') }}</ion-title>
         </ion-toolbar>
       </ion-header>
 
       <section class="g-section">
-        <h3 class="g-section-title">Tema</h3>
-        <div class="palettes" role="radiogroup" aria-label="Tema de color">
+        <h3 class="g-section-title">{{ $t('settings.language') }}</h3>
+        <ion-segment v-model="languagePreference" :aria-label="$t('settings.language')">
+          <ion-segment-button value="system">
+            <ion-label>{{ $t('settings.system') }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button v-for="l in LANGUAGES" :key="l.id" :value="l.id">
+            <ion-label>{{ l.label }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </section>
+
+      <section class="g-section">
+        <h3 class="g-section-title">{{ $t('settings.theme') }}</h3>
+        <div class="palettes" role="radiogroup" :aria-label="$t('settings.themeAria')">
           <button
             v-for="p in PALETTES"
             :key="p.id"
@@ -29,37 +41,37 @@
             <span class="swatch" :style="{ background: p.swatch[0] }" aria-hidden="true">
               <span class="swatch-accent" :style="{ background: p.swatch[1] }" />
             </span>
-            {{ p.label }}
+            {{ $t(`settings.palettes.${p.id}`) }}
           </button>
         </div>
       </section>
 
       <section class="g-section">
-        <h3 class="g-section-title">Modo</h3>
-        <ion-segment v-model="themePreference" aria-label="Modo claro u oscuro">
+        <h3 class="g-section-title">{{ $t('settings.mode') }}</h3>
+        <ion-segment v-model="themePreference" :aria-label="$t('settings.modeAria')">
           <ion-segment-button value="system">
-            <ion-label>Sistema</ion-label>
+            <ion-label>{{ $t('settings.system') }}</ion-label>
           </ion-segment-button>
           <ion-segment-button value="light">
-            <ion-label>☀️ Claro</ion-label>
+            <ion-label>☀️ {{ $t('settings.light') }}</ion-label>
           </ion-segment-button>
           <ion-segment-button value="dark">
-            <ion-label>🌙 Oscuro</ion-label>
+            <ion-label>🌙 {{ $t('settings.dark') }}</ion-label>
           </ion-segment-button>
         </ion-segment>
       </section>
 
       <section class="g-section">
-        <h3 class="g-section-title">Avisos</h3>
+        <h3 class="g-section-title">{{ $t('settings.alerts') }}</h3>
         <div class="g-card">
           <div v-if="alertsSupported" class="toggle-row">
             <div>
-              <div class="toggle-label">Avisos de mantenimiento</div>
-              <div class="g-secondary small">Te llegan aunque no abras la app.</div>
+              <div class="toggle-label">{{ $t('settings.alertsToggle') }}</div>
+              <div class="g-secondary small">{{ $t('settings.alertsHint') }}</div>
             </div>
             <ion-toggle
               :checked="alertsEnabled"
-              aria-label="Avisos de mantenimiento"
+              :aria-label="$t('settings.alertsToggle')"
               @ion-change="toggleAlerts($event.detail.checked)"
             />
           </div>
@@ -69,18 +81,16 @@
             class="allow"
             @click="allowAlerts"
           >
-            Permitir avisos
+            {{ $t('settings.allowAlerts') }}
           </ion-button>
           <p v-if="alertsSupported && alertsEnabled && permission === 'denied'" class="denied">
-            El sistema tiene bloqueados los avisos de Garage. Actívalos en Ajustes del teléfono → Aplicaciones → Garage →
-            Notificaciones.
+            {{ $t('settings.alertsDenied') }}
           </p>
           <p v-if="!alertsSupported" class="g-secondary small">
-            Los avisos llegan en la app de Android o iPhone, aunque no la abras. En la versión web no es posible: esto es
-            lo que recibirías.
+            {{ $t('settings.alertsWeb') }}
           </p>
 
-          <h4 class="upcoming-title">Próximos avisos</h4>
+          <h4 class="upcoming-title">{{ $t('settings.upcoming') }}</h4>
           <ul v-if="upcoming.length > 0" class="upcoming">
             <li v-for="a in upcoming" :key="a.id">
               <span class="upcoming-at g-mono">{{ formatDayTime(a.at) }}</span>
@@ -90,34 +100,33 @@
               </span>
             </li>
           </ul>
-          <p v-else class="g-secondary small">No hay nada previsto en los próximos 3 meses.</p>
+          <p v-else class="g-secondary small">{{ $t('settings.noUpcoming') }}</p>
 
           <ion-button v-if="alertsSupported && alertsEnabled" fill="clear" size="small" @click="testAlert">
-            Enviar aviso de prueba
+            {{ $t('settings.testAlert') }}
           </ion-button>
         </div>
       </section>
 
       <section class="g-section">
-        <h3 class="g-section-title">Datos</h3>
+        <h3 class="g-section-title">{{ $t('settings.data') }}</h3>
         <div class="g-card">
           <p class="g-secondary info">
-            Todo se guarda solo en este dispositivo. Haz una copia de vez en cuando: si pierdes o cambias de móvil,
-            la importas y lo recuperas todo.
+            {{ $t('settings.dataInfo') }}
           </p>
           <p class="last-backup g-mono">
-            Última copia: {{ lastBackup ? formatDate(lastBackup) : 'nunca' }}
+            {{ $t('settings.lastBackup', { date: lastBackup ? formatDate(lastBackup) : $t('settings.never') }) }}
           </p>
           <div class="backup-actions">
-            <ion-button expand="block" :disabled="busy" @click="exportData">Exportar copia</ion-button>
-            <ion-button expand="block" fill="outline" :disabled="busy" @click="pickBackup">Importar copia</ion-button>
+            <ion-button expand="block" :disabled="busy" @click="exportData">{{ $t('settings.export') }}</ion-button>
+            <ion-button expand="block" fill="outline" :disabled="busy" @click="pickBackup">{{ $t('settings.import') }}</ion-button>
           </div>
           <input ref="fileInput" type="file" accept="application/json,.json" hidden @change="onBackupSelected" />
           <ion-button v-if="demoLoaded" expand="block" fill="clear" size="small" color="medium" class="demo" :disabled="busy" @click="unseed">
-            Quitar datos de ejemplo
+            {{ $t('settings.removeDemo') }}
           </ion-button>
           <ion-button v-else expand="block" fill="clear" size="small" class="demo" :disabled="busy" @click="seed">
-            Cargar datos de ejemplo
+            {{ $t('settings.loadDemo') }}
           </ion-button>
         </div>
       </section>
@@ -156,6 +165,7 @@ import {
   type AlertPermission,
 } from '@/lib/notifications';
 import { useGarageStore } from '@/stores/garage';
+import { languagePreference, LANGUAGES, t } from '@/i18n';
 import { palettePreference, PALETTES, themePreference } from '@/theme/theme';
 
 const version = __APP_VERSION__;
@@ -183,7 +193,7 @@ async function testAlert() {
   if (permission.value !== 'granted') permission.value = await requestAlertPermission();
   if (permission.value !== 'granted') return;
   await sendTestAlert();
-  await toast('Te llegará un aviso en 5 segundos');
+  await toast(t('settings.testSent'));
 }
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -200,8 +210,8 @@ function readLastBackup(): string | null {
 }
 
 async function toast(message: string, color?: string) {
-  const t = await toastController.create({ message, color, duration: 2500, position: 'top' });
-  await t.present();
+  const toastEl = await toastController.create({ message, color, duration: 2500, position: 'top' });
+  await toastEl.present();
 }
 
 async function exportData() {
@@ -215,9 +225,9 @@ async function exportData() {
     } catch {
       // sin almacenamiento: solo no se recuerda la fecha
     }
-    await toast('Copia exportada ✓', 'success');
+    await toast(t('settings.exported'), 'success');
   } catch {
-    await toast('No se pudo exportar la copia', 'danger');
+    await toast(t('settings.exportFailed'), 'danger');
   } finally {
     busy.value = false;
   }
@@ -234,11 +244,11 @@ async function onBackupSelected(event: Event) {
   if (!file) return;
 
   const alert = await alertController.create({
-    header: '¿Importar copia?',
-    message: 'Se fusionará con lo que ya tienes: se añade lo que falte y, si algo está en los dos, se queda la versión más reciente. No se borra nada.',
+    header: t('settings.importHeader'),
+    message: t('settings.importMessage'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Importar', role: 'confirm' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('settings.importButton'), role: 'confirm' },
     ],
   });
   await alert.present();
@@ -254,11 +264,15 @@ async function onBackupSelected(event: Event) {
     const v = result.counts.vehicles;
     const e = result.counts.entries;
     await toast(
-      `Copia del ${formatDate(result.exportedAt.slice(0, 10))} importada: ${v} ${v === 1 ? 'vehículo' : 'vehículos'}, ${e} ${e === 1 ? 'registro' : 'registros'}`,
+      t('settings.imported', {
+        date: formatDate(result.exportedAt.slice(0, 10)),
+        vehicles: t('settings.vehiclesCount', { n: v }, v),
+        entries: t('settings.entriesCount', { n: e }, e),
+      }),
       'success',
     );
   } catch {
-    await toast('No se pudo importar la copia', 'danger');
+    await toast(t('settings.importFailed'), 'danger');
   } finally {
     busy.value = false;
   }
@@ -269,11 +283,11 @@ const demoLoaded = computed(() => store.vehicles.some(isDemoVehicle));
 
 async function unseed() {
   const alert = await alertController.create({
-    header: '¿Quitar datos de ejemplo?',
-    message: 'Se borrarán CBR600RR, Scrambler y Corolla de ejemplo. Tus vehículos no se tocan.',
+    header: t('settings.removeDemoHeader'),
+    message: t('settings.removeDemoMessage'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Quitar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('settings.removeButton'), role: 'destructive' },
     ],
   });
   await alert.present();
@@ -282,7 +296,7 @@ async function unseed() {
   try {
     await removeDemoData(store.repository);
     await store.reload();
-    await toast('Datos de ejemplo quitados');
+    await toast(t('settings.demoRemoved'));
   } finally {
     busy.value = false;
   }
@@ -290,11 +304,11 @@ async function unseed() {
 
 async function seed() {
   const alert = await alertController.create({
-    header: '¿Cargar datos de ejemplo?',
-    message: 'Se añadirán 3 vehículos con historial (CBR600RR, Scrambler y Corolla).',
+    header: t('settings.loadDemoHeader'),
+    message: t('settings.loadDemoMessage'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Cargar', role: 'confirm' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('settings.loadButton'), role: 'confirm' },
     ],
   });
   await alert.present();
@@ -305,7 +319,7 @@ async function seed() {
   try {
     const added = await seedDemoData(store.repository);
     await store.reload();
-    await toast(added ? 'Datos de ejemplo cargados' : 'Los datos de ejemplo ya estaban cargados');
+    await toast(added ? t('settings.demoLoaded') : t('settings.demoAlready'));
   } finally {
     busy.value = false;
   }

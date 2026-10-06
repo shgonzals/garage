@@ -12,7 +12,9 @@
 import { IonApp, IonRouterOutlet, IonSplitPane } from '@ionic/vue';
 import SideMenu from '@/components/SideMenu.vue';
 import { useAlertSync } from '@/composables/useAlertSync';
+import { useWidgetSync } from '@/composables/useWidgetSync';
 import { sidebarCollapsed } from '@/composables/useSidebar';
 
 useAlertSync();
+useWidgetSync();
 </script>

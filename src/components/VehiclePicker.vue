@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.vehicles.length > 1" class="vehicle-picker" role="radiogroup" aria-label="Vehículo">
+  <div v-if="store.vehicles.length > 1" class="vehicle-picker" role="radiogroup" :aria-label="$t('common.vehicle')">
     <button
       v-for="v in store.vehicles"
       :key="v.id"

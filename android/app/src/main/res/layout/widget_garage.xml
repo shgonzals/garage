@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget de escritorio. Mismo estilo que el cuadro de instrumentos de la app: panel oscuro y acento amarillo. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.08"
+            android:text="@string/app_name"
+            android:textAllCaps="true"
+            android:textColor="#F5C518"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/quick_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_button"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingStart="12dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="5dp"
+            android:text="@string/widget_quick_log"
+            android:textAllCaps="true"
+            android:textColor="#14171B"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/widget_open_app"
+        android:textColor="#9AA1A9"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/row1"
+        style="@style/WidgetRow">
+
+        <TextView
+            android:id="@+id/row1_dot"
+            style="@style/WidgetDot" />
+
+        <LinearLayout style="@style/WidgetTexts">
+
+            <TextView
+                android:id="@+id/row1_title"
+                style="@style/WidgetTitle"
+                android:text="@string/widget_sample_title" />
+
+            <TextView
+                android:id="@+id/row1_subtitle"
+                style="@style/WidgetSubtitle"
+                android:text="@string/widget_sample_subtitle" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row2"
+        style="@style/WidgetRow"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/row2_dot"
+            style="@style/WidgetDot" />
+
+        <LinearLayout style="@style/WidgetTexts">
+
+            <TextView
+                android:id="@+id/row2_title"
+                style="@style/WidgetTitle" />
+
+            <TextView
+                android:id="@+id/row2_subtitle"
+                style="@style/WidgetSubtitle" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row3"
+        style="@style/WidgetRow"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/row3_dot"
+            style="@style/WidgetDot" />
+
+        <LinearLayout style="@style/WidgetTexts">
+
+            <TextView
+                android:id="@+id/row3_title"
+                style="@style/WidgetTitle" />
+
+            <TextView
+                android:id="@+id/row3_subtitle"
+                style="@style/WidgetSubtitle" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

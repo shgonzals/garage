@@ -2,20 +2,20 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Recordatorios</ion-title>
+        <ion-title>{{ $t('nav.reminders') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Recordatorios</ion-title>
+          <ion-title size="large">{{ $t('nav.reminders') }}</ion-title>
         </ion-toolbar>
       </ion-header>
 
       <ion-segment v-if="store.vehicles.length > 1" v-model="filter" :scrollable="true" class="filter">
         <ion-segment-button value="all">
-          <ion-label>Todos</ion-label>
+          <ion-label>{{ $t('common.all') }}</ion-label>
         </ion-segment-button>
         <ion-segment-button v-for="v in store.vehicles" :key="v.id" :value="v.id">
           <ion-label>{{ v.name }}</ion-label>
@@ -24,12 +24,12 @@
 
       <div v-if="reminders.length === 0" class="g-empty">
         <div class="g-empty-emoji">✅</div>
-        <h2>Nada pendiente</h2>
-        <p>Cuando registres mantenimientos, aquí verás qué toca y cuándo.</p>
+        <h2>{{ $t('reminders.emptyTitle') }}</h2>
+        <p>{{ $t('reminders.emptyText') }}</p>
       </div>
 
       <section v-for="group in groups" :key="group.status" class="g-section">
-        <h3 class="g-section-title">{{ group.title }} · {{ group.items.length }}</h3>
+        <h3 class="g-section-title">{{ $t(group.title) }} · {{ group.items.length }}</h3>
         <div class="g-grid">
           <button
             v-for="r in group.items"
@@ -68,11 +68,11 @@ const router = useIonRouter();
 const filter = ref<string>('all');
 
 const GROUPS: { status: Urgency; title: string }[] = [
-  { status: 'overdue', title: 'Vencidos' },
-  { status: 'soon', title: 'Pronto' },
-  { status: 'snoozed', title: 'Pospuestos' },
-  { status: 'ok', title: 'Al día' },
-  { status: 'unknown', title: 'Sin historial' },
+  { status: 'overdue', title: 'reminders.overdue' },
+  { status: 'soon', title: 'reminders.soon' },
+  { status: 'snoozed', title: 'reminders.snoozed' },
+  { status: 'ok', title: 'reminders.ok' },
+  { status: 'unknown', title: 'reminders.unknown' },
 ];
 
 const reminders = computed(() =>

@@ -1,4 +1,5 @@
 import { addDays, differenceInCalendarDays, isSaturday, isSunday, nextSaturday, nextSunday, parseISO, set, subDays } from 'date-fns';
+import { t } from '@/i18n';
 import { toIsoDate } from './dates';
 import type { KmRate } from './forecast';
 import { isAnnualDeadline } from './deadlines';
@@ -75,7 +76,7 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
             kind: 'snooze',
             at: atHour(end, hour),
             title: `${name} · ${getTask(r.taskId).label}`,
-            body: 'Te lo recordamos: lo habías pospuesto hasta ahora.',
+            body: t('alerts.snoozeEnded'),
             vehicleId: vehicle.id,
           });
         }
@@ -99,7 +100,9 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
             kind: 'soon',
             at: atHour(soon, hour),
             title: `${name} · ${label}`,
-            body: isAnnualDeadline(r.taskId) ? `Vence el ${formatDate(r.dueDate!)}.` : `Se acerca: toca ${dueText(r)}.`,
+            body: isAnnualDeadline(r.taskId)
+              ? t('alerts.expiresOn', { date: formatDate(r.dueDate!) })
+              : t('alerts.soon', { target: dueText(r) }),
             vehicleId: vehicle.id,
           });
         }
@@ -113,10 +116,10 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         at: atHour(due, hour),
         title: `${name} · ${label}`,
         body: dueByKm
-          ? `A tu ritmo ya rondarás ${r.unit === 'km' ? 'los' : 'las'} ${formatUsage(r.dueKm!, r.unit)}: toca hacerlo.`
+          ? t(r.unit === 'km' ? 'alerts.dueByKm' : 'alerts.dueByHours', { value: formatUsage(r.dueKm!, r.unit) })
           : isAnnualDeadline(r.taskId)
-            ? 'Vence hoy. Cuando lo renueves, apúntalo en Garage.'
-            : `Toca hoy (${dueText(r)}).`,
+            ? t('alerts.expiresToday')
+            : t('alerts.dueToday', { target: dueText(r) }),
         vehicleId: vehicle.id,
       });
     }
@@ -127,7 +130,7 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         key: `overdue:${vehicle.id}`,
         kind: 'overdue',
         at: weekly(now, hour, isSaturday, nextSaturday),
-        title: `${name} · ${overdue.length} ${overdue.length === 1 ? 'mantenimiento vencido' : 'mantenimientos vencidos'}`,
+        title: t('alerts.overdueTitle', { name, n: overdue.length }, overdue.length),
         body: overdue.map((r) => getTask(r.taskId).label).join(', '),
         vehicleId: vehicle.id,
       });
@@ -143,10 +146,8 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         key: `odometer:${vehicle.id}`,
         kind: 'odometer',
         at,
-        title: hours ? `${name} · ¿Cuántas horas lleva?` : `${name} · ¿Cuántos km tiene?`,
-        body: hours
-          ? `Hace ${days} días que no apuntas las horas. Actualízalas para que los avisos por horas sean fiables.`
-          : `Hace ${days} días que no apuntas los km. Actualízalos para que los avisos por km sean fiables.`,
+        title: t(hours ? 'alerts.askHoursTitle' : 'alerts.askKmTitle', { name }),
+        body: t(hours ? 'alerts.askHoursBody' : 'alerts.askKmBody', { days }),
         vehicleId: vehicle.id,
       });
     }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { t } from '@/i18n';
 import { taskIdSchema } from './schemas';
 import { VEHICLE_TYPES } from './tasks';
 import type { VehicleType } from './types';
@@ -158,19 +159,19 @@ export function parseBackup(json: string, currentSchema: number): BackupParseRes
   try {
     raw = JSON.parse(json);
   } catch {
-    return { ok: false, error: 'El archivo no es una copia de Garage (no es JSON válido).' };
+    return { ok: false, error: t('backup.notJson') };
   }
   if (typeof raw !== 'object' || raw === null || (raw as { app?: unknown }).app !== 'garage') {
-    return { ok: false, error: 'El archivo no es una copia de Garage.' };
+    return { ok: false, error: t('backup.notGarage') };
   }
   const version = (raw as { schema_version?: unknown }).schema_version;
   if (typeof version === 'number' && version > currentSchema) {
-    return { ok: false, error: 'La copia es de una versión más nueva de la app. Actualiza Garage e inténtalo de nuevo.' };
+    return { ok: false, error: t('backup.newer') };
   }
   const parsed = backupSchema.safeParse(raw);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    return { ok: false, error: `La copia está dañada (${issue?.path.join('.') ?? 'formato'}).` };
+    return { ok: false, error: t('backup.damaged', { where: issue?.path.join('.') ?? t('backup.format') }) };
   }
   return { ok: true, backup: parsed.data };
 }

@@ -2,6 +2,7 @@ import { App as CapApp } from '@capacitor/app';
 import { onScopeDispose, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { planAlerts, type PlannedAlert } from '@/domain/alerts';
+import { i18n } from '@/i18n';
 import { alertsEnabled, alertsSupported, onAlertTap, requestAlertPermissionOnce, scheduleAlerts } from '@/lib/notifications';
 import { useGarageStore } from '@/stores/garage';
 
@@ -41,7 +42,7 @@ export function useAlertSync() {
     }, 1500);
   };
 
-  watch([() => store.allReminders, () => store.kmRates, alertsEnabled], sync, { immediate: true });
+  watch([() => store.allReminders, () => store.kmRates, alertsEnabled, i18n.global.locale], sync, { immediate: true });
   void CapApp.addListener('resume', () => void store.reload());
   void onAlertTap((vehicleId) => router.push(`/vehicles/${vehicleId}`));
   onScopeDispose(() => clearTimeout(timer));

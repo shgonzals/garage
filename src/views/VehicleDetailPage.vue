@@ -5,9 +5,9 @@
         <ion-buttons slot="start">
           <ion-back-button default-href="/tabs/garage" text="" />
         </ion-buttons>
-        <ion-title>{{ vehicle?.name ?? 'Vehículo' }}</ion-title>
+        <ion-title>{{ vehicle?.name ?? $t('common.vehicle') }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button v-if="vehicle" :router-link="`/vehicles/${id}/edit`">Editar</ion-button>
+          <ion-button v-if="vehicle" :router-link="`/vehicles/${id}/edit`">{{ $t('common.edit') }}</ion-button>
           <ion-button
             v-if="vehicle"
             class="g-desktop-only"
@@ -17,7 +17,7 @@
             :router-link="`/log?vehicle=${id}`"
           >
             <ion-icon slot="start" :icon="flash" />
-            Registrar
+            {{ $t('detail.log') }}
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -26,7 +26,7 @@
     <ion-content class="ion-padding g-has-fab">
       <div v-if="!vehicle" class="g-empty">
         <div class="g-empty-emoji">🤷</div>
-        <h2>Vehículo no encontrado</h2>
+        <h2>{{ $t('detail.notFound') }}</h2>
       </div>
 
       <template v-else>
@@ -54,11 +54,11 @@
           <!-- Urgencias -->
           <section class="g-section">
             <div class="section-head">
-              <h3 class="g-section-title g-hazard">Urgencias</h3>
-              <ion-button fill="clear" size="small" :router-link="`/vehicles/${id}/plan`">Plan</ion-button>
+              <h3 class="g-section-title g-hazard">{{ $t('detail.urgent') }}</h3>
+              <ion-button fill="clear" size="small" :router-link="`/vehicles/${id}/plan`">{{ $t('detail.plan') }}</ion-button>
             </div>
             <p v-if="reminders.length === 0" class="g-secondary">
-              No hay mantenimientos programados. Configúralos en el plan.
+              {{ $t('detail.noPlan') }}
             </p>
             <UrgencyCard v-for="r in visibleReminders" :key="r.taskId" :reminder="r" actions />
             <ion-button
@@ -68,20 +68,20 @@
               expand="block"
               @click="showAll = true"
             >
-              Ver {{ hiddenCount }} más sin historial
+              {{ $t('detail.showMore', { n: hiddenCount }) }}
             </ion-button>
           </section>
 
           <!-- Historial -->
           <section class="g-section">
-            <h3 class="g-section-title">Historial</h3>
+            <h3 class="g-section-title">{{ $t('detail.history') }}</h3>
             <p v-if="history.length === 0" class="g-secondary">
-              Aún no hay registros. Pulsa ⚡ para apuntar el primero.
+              {{ $t('detail.noHistory') }}
             </p>
             <div v-else class="work work-head" aria-hidden="true">
-              <span>Fecha</span>
-              <span>{{ unit === 'km' ? 'Km' : 'Horas' }}</span>
-              <span>Trabajo</span>
+              <span>{{ $t('common.date') }}</span>
+              <span>{{ unit === 'km' ? $t('common.km') : $t('common.hours') }}</span>
+              <span>{{ $t('detail.work') }}</span>
             </div>
             <ion-list v-if="history.length > 0" lines="none" class="timeline">
               <template v-for="h in history" :key="h.item.id">
@@ -90,16 +90,16 @@
                   <button
                     type="button"
                     class="work timeline-body"
-                    :aria-label="`Editar repostaje del ${formatDate(h.item.filled_on)}`"
+                    :aria-label="$t('detail.editFuelAria', { date: formatDate(h.item.filled_on) })"
                     @click="router.push(`/fuel/${h.item.id}/edit`)"
                   >
                     <span class="g-mono">{{ formatNumericDate(h.item.filled_on) }}</span>
                     <span class="g-mono">{{ h.item.odometer_km !== null ? formatNumber(h.item.odometer_km) : '—' }}</span>
                     <span class="work-desc">
-                      <span class="work-tasks">⛽ Repostaje · <span class="g-mono">{{ formatLiters(h.item.centiliters) }}</span></span>
+                      <span class="work-tasks">⛽ {{ $t('logMode.fuel') }} · <span class="g-mono">{{ formatLiters(h.item.centiliters) }}</span></span>
                       <span v-if="h.item.cost_cents !== null || h.item.notes || !h.item.full_tank" class="work-meta">
                         <span v-if="h.item.cost_cents !== null" class="g-mono">{{ formatMoney(h.item.cost_cents, h.item.currency) }}</span>
-                        <span v-if="!h.item.full_tank">{{ h.item.cost_cents !== null ? ' · ' : '' }}parcial</span>
+                        <span v-if="!h.item.full_tank">{{ h.item.cost_cents !== null ? ' · ' : '' }}{{ $t('detail.partial') }}</span>
                         <span v-if="h.item.notes"> · {{ h.item.notes }}</span>
                       </span>
                     </span>
@@ -109,14 +109,14 @@
                     class="g-desktop-only delete"
                     fill="clear"
                     color="medium"
-                    aria-label="Borrar repostaje"
+                    :aria-label="$t('fuel.delete')"
                     @click="removeFuel(h.item.id)"
                   >
                     <ion-icon slot="icon-only" :icon="trashOutline" />
                   </ion-button>
                 </ion-item>
                 <ion-item-options side="end">
-                  <ion-item-option color="danger" @click="removeFuel(h.item.id)">Borrar</ion-item-option>
+                  <ion-item-option color="danger" @click="removeFuel(h.item.id)">{{ $t('common.delete') }}</ion-item-option>
                 </ion-item-options>
               </ion-item-sliding>
               <ion-item-sliding v-else>
@@ -125,7 +125,7 @@
                   <button
                     type="button"
                     class="work timeline-body"
-                    :aria-label="`Editar registro del ${formatDate(h.item.done_on)}`"
+                    :aria-label="$t('detail.editEntryAria', { date: formatDate(h.item.done_on) })"
                     @click="router.push(`/entries/${h.item.id}/edit`)"
                   >
                     <span class="g-mono">{{ formatNumericDate(h.item.done_on) }}</span>
@@ -145,14 +145,14 @@
                     class="g-desktop-only delete"
                     fill="clear"
                     color="medium"
-                    aria-label="Borrar registro"
+                    :aria-label="$t('detail.deleteEntry')"
                     @click="removeEntry(h.item.id)"
                   >
                     <ion-icon slot="icon-only" :icon="trashOutline" />
                   </ion-button>
                 </ion-item>
                 <ion-item-options side="end">
-                  <ion-item-option color="danger" @click="removeEntry(h.item.id)">Borrar</ion-item-option>
+                  <ion-item-option color="danger" @click="removeEntry(h.item.id)">{{ $t('common.delete') }}</ion-item-option>
                 </ion-item-options>
               </ion-item-sliding>
               </template>
@@ -161,7 +161,7 @@
         </div>
 
         <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-          <ion-fab-button :router-link="`/log?vehicle=${id}`" aria-label="Registrar mantenimiento">
+          <ion-fab-button :router-link="`/log?vehicle=${id}`" :aria-label="$t('garage.logService')">
             <ion-icon :icon="flash" />
           </ion-fab-button>
         </ion-fab>
@@ -200,6 +200,7 @@ import UrgencyCard from '@/components/UrgencyCard.vue';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { useDesktop } from '@/composables/useDesktop';
 import { formatDate, formatLiters, formatMoney, formatNumber, formatNumericDate, formatUsage } from '@/domain/format';
+import { t } from '@/i18n';
 import { UNITS, usageUnit } from '@/domain/units';
 import { getTask, vehicleTypeLabel } from '@/domain/tasks';
 import { useGarageStore } from '@/stores/garage';
@@ -244,11 +245,11 @@ async function promptOdometer() {
         attributes: { inputmode: 'numeric', min: 0 },
       },
     ],
-    message: `¿Te equivocaste antes? Corrígelo en el historial de ${unit.value === 'km' ? 'km' : 'horas'}.`,
+    message: t(unit.value === 'km' ? 'detail.fixKm' : 'detail.fixHours'),
     buttons: [
-      { text: 'Historial', role: 'history' },
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Guardar', role: 'confirm' },
+      { text: t('detail.history'), role: 'history' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.save'), role: 'confirm' },
     ],
   });
   await alert.present();
@@ -261,12 +262,12 @@ async function promptOdometer() {
 
   const value = Number(data?.values.km);
   if (!Number.isInteger(value) || value < 0) {
-    await toast('Introduce un número entero válido', 'danger');
+    await toast(t('odometer.invalid'), 'danger');
     return;
   }
   if (km.value !== null && value < km.value) {
     await toast(
-      `No puede bajar de ${formatUsage(km.value, unit.value)}. Si es un error, corrígelo en el historial.`,
+      t('detail.cantGoDown', { value: formatUsage(km.value, unit.value) }),
       'danger',
     );
     return;
@@ -276,10 +277,10 @@ async function promptOdometer() {
 
 async function removeFuel(fuelId: string) {
   const alert = await alertController.create({
-    header: '¿Borrar repostaje?',
+    header: t('fuel.deleteHeader'),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Borrar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.delete'), role: 'destructive' },
     ],
   });
   await alert.present();
@@ -288,11 +289,11 @@ async function removeFuel(fuelId: string) {
 
 async function removeEntry(entryId: string) {
   const alert = await alertController.create({
-    header: '¿Borrar registro?',
-    message: `También se quitarán ${UNITS[unit.value].noun} que apuntaste en él.`,
+    header: t('detail.deleteEntryHeader'),
+    message: t('detail.deleteEntryMessage', { what: UNITS[unit.value].noun }),
     buttons: [
-      { text: 'Cancelar', role: 'cancel' },
-      { text: 'Borrar', role: 'destructive' },
+      { text: t('common.cancel'), role: 'cancel' },
+      { text: t('common.delete'), role: 'destructive' },
     ],
   });
   await alert.present();
@@ -301,8 +302,8 @@ async function removeEntry(entryId: string) {
 }
 
 async function toast(message: string, color: string) {
-  const t = await toastController.create({ message, color, duration: 2000, position: 'top' });
-  await t.present();
+  const toastEl = await toastController.create({ message, color, duration: 2000, position: 'top' });
+  await toastEl.present();
 }
 </script>
 

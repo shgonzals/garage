@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="widget_description">Próximos mantenimientos y registro rápido</string>
+    <string name="widget_quick_log">Registrar</string>
+    <string name="widget_open_app">Abre Garage para ver qué toca</string>
+    <string name="widget_sample_title">CBR600RR · Engrase de cadena</string>
+    <string name="widget_sample_subtitle">Toca a 23.500 km</string>
+</resources>

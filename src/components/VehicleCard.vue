@@ -6,7 +6,7 @@
       <div class="status">
         <!-- Testigo del cuadro: rojo vencido, ámbar pronto, verde al día; brilla si requiere atención. -->
         <span class="lamp" aria-hidden="true" />
-        {{ summary ? summaryText(summary) : 'Sin recordatorios' }}
+        {{ summary ? summaryText(summary) : $t('format.noReminders') }}
       </div>
     </div>
     <div class="km">

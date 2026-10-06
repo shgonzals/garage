@@ -23,14 +23,14 @@ export interface FuelLog extends Row {
   notes: string | null;
 }
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.invalidDate');
 
 export const fuelInputSchema = z.object({
-  vehicle_id: z.string().min(1, 'Elige un vehículo'),
+  vehicle_id: z.string().min(1, 'validation.chooseVehicle'),
   filled_on: isoDate,
-  odometer_km: z.number().int('Sin decimales').min(0).max(5_000_000).nullable(),
+  odometer_km: z.number().int('validation.noDecimals').min(0).max(5_000_000).nullable(),
   /** Litros tal y como los escribe el usuario. */
-  liters: z.number({ error: 'Indica los litros' }).positive('Indica los litros').max(1000),
+  liters: z.number({ error: 'validation.enterLiters' }).positive('validation.enterLiters').max(1000),
   /** Importe total en euros (opcional). */
   cost: z.number().min(0).max(100_000).nullable(),
   full_tank: z.boolean(),
