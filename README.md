@@ -22,16 +22,17 @@ En **Ajustes → Cargar datos de ejemplo** tienes 3 vehículos (CBR600RR, Scramb
 
 ### Android
 
-Requisitos: **Node ≥ 22** (CLI de Capacitor 8), Android Studio con el SDK y **JDK 21**
-(Gradle 8.14 no arranca con el JDK 25 que trae Android Studio: en *Settings → Build Tools → Gradle → Gradle JDK* elige el 21).
+Requisitos: **Node ≥ 22** (CLI de Capacitor 8), Android Studio con el SDK y un **JDK 21** instalado.
+No hace falta que `JAVA_HOME` apunte a él: `android/gradle/gradle-daemon-jvm.properties` le dice a Gradle
+que busque un JDK 21 entre los instalados (así otros proyectos pueden seguir con el JDK que usen).
 
 ```bash
 npm run cap:sync          # compila la web y la copia a android/
 npx cap open android      # y ▶ en Android Studio (móvil por USB o emulador)
 ```
 
-Desde terminal: `cd android && JAVA_HOME="C:/Program Files/Java/jdk-21" ./gradlew assembleDebug`
-genera `android/app/build/outputs/apk/debug/app-debug.apk`. Con un APK de depuración,
+Desde terminal: `npx cap run android` (compila, instala y abre en el móvil o emulador que elijas), o
+`cd android && ./gradlew assembleDebug` para generar `android/app/build/outputs/apk/debug/app-debug.apk`. Con un APK de depuración,
 `chrome://inspect` en el Chrome del ordenador permite inspeccionar la app.
 
 `android/` está versionada: lleva la configuración nativa que no regenera Capacitor
