@@ -3,7 +3,11 @@
     <VehicleAvatar :photo="vehicle.photo" :type="vehicle.type" :size="48" />
     <div class="info">
       <div class="name">{{ vehicle.name }}</div>
-      <div class="status">{{ summary ? summaryText(summary) : 'Sin recordatorios' }}</div>
+      <div class="status">
+        <!-- Testigo del cuadro: rojo vencido, ámbar pronto, verde al día; brilla si requiere atención. -->
+        <span class="lamp" aria-hidden="true" />
+        {{ summary ? summaryText(summary) : 'Sin recordatorios' }}
+      </div>
     </div>
     <div class="km">
       <template v-if="km !== null">
@@ -40,7 +44,6 @@ const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);
   color: var(--g-text);
   background: var(--g-surface);
   border: 1px solid var(--g-border);
-  border-left: 4px solid var(--g-neutral);
   border-radius: var(--g-radius-lg);
   box-shadow: var(--g-shadow-md);
   padding: 16px;
@@ -55,14 +58,11 @@ const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);
 .vehicle-card:active {
   transform: scale(0.99);
 }
-.danger {
-  border-left-color: var(--g-danger);
+.vehicle-card.danger {
+  border-color: var(--g-border-danger);
 }
-.warning {
-  border-left-color: var(--g-warning);
-}
-.success {
-  border-left-color: var(--g-success);
+.vehicle-card.warning {
+  border-color: var(--g-border-warning);
 }
 .info {
   flex: 1;
@@ -78,8 +78,29 @@ const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);
   margin-bottom: 2px;
 }
 .status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 13px;
   color: var(--g-text-secondary);
+}
+.lamp {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--g-border-strong);
+}
+.danger .lamp {
+  background: var(--g-danger);
+  box-shadow: 0 0 6px var(--g-danger);
+}
+.warning .lamp {
+  background: var(--g-warning);
+  box-shadow: 0 0 6px var(--g-warning);
+}
+.success .lamp {
+  background: var(--g-success);
 }
 .danger .status {
   color: var(--g-text-danger);
