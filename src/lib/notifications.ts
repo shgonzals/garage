@@ -1,4 +1,7 @@
 import { Capacitor } from '@capacitor/core';
+// Import estático: un plugin de Capacitor no puede devolverse desde una función async
+// (el `await` llama a su `.then()`, que el proxy nativo no implementa).
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { ref, watch } from 'vue';
 import type { PlannedAlert } from '@/domain/alerts';
 
@@ -31,9 +34,6 @@ watch(alertsEnabled, (on) => {
   }
 });
 
-async function plugin() {
-  return (await import('@capacitor/local-notifications')).LocalNotifications;
-}
 
 function toPermission(state: string): AlertPermission {
   return state === 'granted' ? 'granted' : state === 'denied' ? 'denied' : 'prompt';
@@ -41,19 +41,47 @@ function toPermission(state: string): AlertPermission {
 
 export async function alertPermission(): Promise<AlertPermission> {
   if (!alertsSupported) return 'unsupported';
-  return toPermission((await (await plugin()).checkPermissions()).display);
+  return toPermission((await LocalNotifications.checkPermissions()).display);
+}
+
+const ASKED_KEY = 'garage-alerts-asked';
+
+/**
+ * Pide el permiso una única vez y en el momento en que tiene sentido (cuando ya hay algo que
+ * avisar), no al abrir la app por primera vez. Después, solo desde Ajustes.
+ */
+export async function requestAlertPermissionOnce(): Promise<void> {
+  if (!alertsSupported || !alertsEnabled.value) return;
+  try {
+    if (localStorage.getItem(ASKED_KEY)) return;
+    localStorage.setItem(ASKED_KEY, '1');
+  } catch {
+    return;
+  }
+  if ((await alertPermission()) === 'prompt') await requestAlertPermission();
 }
 
 /** Pide permiso (Android 13+ e iOS lo exigen). Si ya se denegó, el sistema no vuelve a preguntar. */
 export async function requestAlertPermission(): Promise<AlertPermission> {
   if (!alertsSupported) return 'unsupported';
-  return toPermission((await (await plugin()).requestPermissions()).display);
+  return toPermission((await LocalNotifications.requestPermissions()).display);
 }
 
-/** Sustituye todos los avisos pendientes por el plan dado. */
-export async function scheduleAlerts(alerts: PlannedAlert[]): Promise<void> {
+let queue: Promise<void> = Promise.resolve();
+
+/**
+ * Sustituye todos los avisos pendientes por el plan dado. Las llamadas se encadenan: si dos
+ * se solaparan, una podría cancelar lo que la otra acaba de programar.
+ */
+export function scheduleAlerts(alerts: PlannedAlert[]): Promise<void> {
+  const run = queue.then(() => replaceAlerts(alerts));
+  queue = run.catch(() => {});
+  return run;
+}
+
+async function replaceAlerts(alerts: PlannedAlert[]): Promise<void> {
   if (!alertsSupported) return;
-  const ln = await plugin();
+  const ln = LocalNotifications;
   const pending = (await ln.getPending()).notifications;
   if (pending.length > 0) await ln.cancel({ notifications: pending.map((n) => ({ id: n.id })) });
   if (!alertsEnabled.value || alerts.length === 0) return;
@@ -72,7 +100,7 @@ export async function scheduleAlerts(alerts: PlannedAlert[]): Promise<void> {
 /** Aviso de prueba a los 5 segundos, para comprobar que llegan. */
 export async function sendTestAlert(): Promise<void> {
   if (!alertsSupported) return;
-  await (await plugin()).schedule({
+  await LocalNotifications.schedule({
     notifications: [
       {
         id: 1,
@@ -87,7 +115,7 @@ export async function sendTestAlert(): Promise<void> {
 /** Al tocar un aviso: devuelve el vehículo al que se refiere. */
 export async function onAlertTap(handler: (vehicleId: string) => void): Promise<void> {
   if (!alertsSupported) return;
-  await (await plugin()).addListener('localNotificationActionPerformed', (event) => {
+  await LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
     const id = event.notification.extra?.vehicleId;
     if (typeof id === 'string') handler(id);
   });

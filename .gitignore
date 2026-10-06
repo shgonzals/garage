@@ -8,6 +8,4 @@ coverage/
 .DS_Store
 # generado por scripts/copy-sql-wasm.mjs
 public/assets/sql-wasm.wasm
-# plataformas nativas: se generan con `npx cap add android|ios`
-android/
-ios/
+# android/ se versiona (permisos, iconos, config nativa); sus compilados los ignora android/.gitignore

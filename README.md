@@ -20,15 +20,22 @@ npm run build      # vue-tsc + vite build
 
 En **Ajustes → Cargar datos de ejemplo** tienes 3 vehículos (CBR600RR, Scrambler y Corolla) para ver la app con datos.
 
-### Android / iOS
+### Android
 
-El CLI de Capacitor 8 necesita **Node ≥ 22**.
+Requisitos: **Node ≥ 22** (CLI de Capacitor 8), Android Studio con el SDK y **JDK 21**
+(Gradle 8.14 no arranca con el JDK 25 que trae Android Studio: en *Settings → Build Tools → Gradle → Gradle JDK* elige el 21).
 
 ```bash
-npx cap add android
-npm run cap:sync
-npx cap open android
+npm run cap:sync          # compila la web y la copia a android/
+npx cap open android      # y ▶ en Android Studio (móvil por USB o emulador)
 ```
+
+Desde terminal: `cd android && JAVA_HOME="C:/Program Files/Java/jdk-21" ./gradlew assembleDebug`
+genera `android/app/build/outputs/apk/debug/app-debug.apk`. Con un APK de depuración,
+`chrome://inspect` en el Chrome del ordenador permite inspeccionar la app.
+
+`android/` está versionada: lleva la configuración nativa que no regenera Capacitor
+(`<queries>` de la cámara en el manifiesto, icono de los avisos `ic_stat_garage`).
 
 ## Estructura
 

@@ -2,7 +2,7 @@ import { App as CapApp } from '@capacitor/app';
 import { onScopeDispose, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { planAlerts, type PlannedAlert } from '@/domain/alerts';
-import { alertsEnabled, alertsSupported, onAlertTap, scheduleAlerts } from '@/lib/notifications';
+import { alertsEnabled, alertsSupported, onAlertTap, requestAlertPermissionOnce, scheduleAlerts } from '@/lib/notifications';
 import { useGarageStore } from '@/stores/garage';
 
 /** Plan de avisos con los datos actuales del store (también sirve de vista previa en Ajustes). */
@@ -31,8 +31,13 @@ export function useAlertSync() {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const sync = () => {
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      scheduleAlerts(currentAlertPlan(store)).catch((err) => console.error('No se pudieron programar los avisos', err));
+    timer = setTimeout(async () => {
+      try {
+        if (store.vehicles.length > 0) await requestAlertPermissionOnce();
+        await scheduleAlerts(currentAlertPlan(store));
+      } catch (err) {
+        console.error('No se pudieron programar los avisos', err);
+      }
     }, 1500);
   };
 

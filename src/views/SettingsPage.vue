@@ -63,6 +63,14 @@
               @ion-change="toggleAlerts($event.detail.checked)"
             />
           </div>
+          <ion-button
+            v-if="alertsSupported && alertsEnabled && permission === 'prompt'"
+            expand="block"
+            class="allow"
+            @click="allowAlerts"
+          >
+            Permitir avisos
+          </ion-button>
           <p v-if="alertsSupported && alertsEnabled && permission === 'denied'" class="denied">
             El sistema tiene bloqueados los avisos de Garage. Actívalos en Ajustes del teléfono → Aplicaciones → Garage →
             Notificaciones.
@@ -162,6 +170,10 @@ const upcoming = computed(() => currentAlertPlan(store).slice(0, 5));
 async function toggleAlerts(on: boolean) {
   alertsEnabled.value = on;
   if (on) permission.value = await requestAlertPermission();
+}
+
+async function allowAlerts() {
+  permission.value = await requestAlertPermission();
 }
 
 async function testAlert() {
@@ -333,6 +345,9 @@ async function seed() {
 }
 .toggle-label {
   font-weight: 600;
+}
+.allow {
+  margin: 12px 0 0;
 }
 .denied {
   margin: 12px 0 0;

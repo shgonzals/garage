@@ -29,8 +29,9 @@
             </ion-button>
           </div>
           <p v-if="errors.photo" class="g-error">{{ errors.photo }}</p>
-          <!-- En móvil, el selector nativo ofrece cámara o galería. -->
+          <!-- Galería / archivos y, aparte, cámara directa (`capture`): en Android el selector no ofrece las dos. -->
           <input ref="fileInput" type="file" accept="image/*" hidden @change="onPhotoSelected" />
+          <input ref="cameraInput" type="file" accept="image/*" capture="environment" hidden @change="onPhotoSelected" />
         </div>
 
         <h3 class="g-section-title">Tipo</h3>
@@ -99,7 +100,9 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
+import { Capacitor } from '@capacitor/core';
 import {
+  actionSheetController,
   alertController,
   IonBackButton,
   IonButton,
@@ -113,7 +116,7 @@ import {
   IonToolbar,
   useIonRouter,
 } from '@ionic/vue';
-import { camera } from 'ionicons/icons';
+import { camera, imagesOutline } from 'ionicons/icons';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { fieldErrors, vehicleInputSchema } from '@/domain/schemas';
 import { VEHICLE_TYPES } from '@/domain/tasks';
@@ -142,9 +145,23 @@ const errors = ref<Record<string, string>>({});
 const saving = ref(false);
 const processing = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
+const cameraInput = ref<HTMLInputElement | null>(null);
 
-function pickPhoto() {
-  fileInput.value?.click();
+async function pickPhoto() {
+  // En la web el navegador ya ofrece sus opciones; en la app nativa preguntamos nosotros.
+  if (!Capacitor.isNativePlatform()) {
+    fileInput.value?.click();
+    return;
+  }
+  const sheet = await actionSheetController.create({
+    header: 'Foto del vehículo',
+    buttons: [
+      { text: 'Hacer foto', icon: camera, handler: () => cameraInput.value?.click() },
+      { text: 'Elegir de la galería', icon: imagesOutline, handler: () => fileInput.value?.click() },
+      { text: 'Cancelar', role: 'cancel' },
+    ],
+  });
+  await sheet.present();
 }
 
 async function onPhotoSelected(event: Event) {

@@ -9,6 +9,11 @@ const config: CapacitorConfig = {
       androidIsEncryption: false,
       iosIsEncryption: false,
     },
+    LocalNotifications: {
+      // android/app/src/main/res/drawable/ic_stat_garage.xml: el rayo, en blanco (Android lo tiñe).
+      smallIcon: 'ic_stat_garage',
+      iconColor: '#F5C518',
+    },
   },
 };
 
