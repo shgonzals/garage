@@ -11,7 +11,7 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <ion-content class="ion-padding g-has-fab">
       <ion-header collapse="condense">
         <ion-toolbar>
           <ion-title size="large">Mi garage</ion-title>

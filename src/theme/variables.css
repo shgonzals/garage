@@ -111,6 +111,33 @@ ion-alert .alert-button:not(.alert-button-role-destructive) {
   color: var(--g-accent-text);
 }
 
+/*
+ * Barra de navegación del sistema (Android de borde a borde): fuera de las pestañas nada reserva
+ * su hueco, y sin esto el rombo ⚡ y el final de la lista quedan debajo de ◁ ○ ⦀, que se quedan
+ * con los toques. Dentro de las pestañas ya lo hace ion-tab-bar.
+ */
+ion-fab[vertical='bottom'],
+ion-fab.fab-vertical-bottom {
+  bottom: calc(10px + var(--ion-safe-area-bottom, 0px));
+}
+ion-tabs ion-fab[vertical='bottom'],
+ion-tabs ion-fab.fab-vertical-bottom {
+  bottom: 10px;
+}
+ion-content.ion-padding {
+  --padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
+}
+ion-tabs ion-content.ion-padding {
+  --padding-bottom: 16px;
+}
+/* Página con rombo flotante: margen para que no tape la última tarjeta. */
+ion-content.ion-padding.g-has-fab {
+  --padding-bottom: calc(96px + var(--ion-safe-area-bottom, 0px));
+}
+ion-tabs ion-content.ion-padding.g-has-fab {
+  --padding-bottom: 96px;
+}
+
 /* Botón de registrar: rombo, como la tecla central del cuadro. */
 ion-fab-button {
   --border-radius: 12px;

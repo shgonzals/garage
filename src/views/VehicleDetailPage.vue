@@ -23,7 +23,7 @@
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <ion-content class="ion-padding g-has-fab">
       <div v-if="!vehicle" class="g-empty">
         <div class="g-empty-emoji">🤷</div>
         <h2>Vehículo no encontrado</h2>
