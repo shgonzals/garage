@@ -4,6 +4,8 @@ coverage/
 # resultados de los tests de interfaz (Playwright)
 test-results/
 playwright-report/
+# APK generados con `npm run apk`
+releases/
 *.local
 .vscode/*
 !.vscode/extensions.json

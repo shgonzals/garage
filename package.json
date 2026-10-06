@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "cap:sync": "npm run build && cap sync",
     "icons": "node scripts/generate-icons.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "apk": "node scripts/build-apk.mjs"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",

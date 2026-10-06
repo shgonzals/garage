@@ -32,6 +32,9 @@ npm run cap:sync          # compila la web y la copia a android/
 npx cap open android      # y ▶ en Android Studio (móvil por USB o emulador)
 ```
 
+Para generar un APK instalable de la versión actual: `npm run apk` → `releases/garage-<versión>-debug.apk`
+(de depuración: para tu móvil o para probadores; Google Play necesitará uno de publicación firmado).
+
 Desde terminal: `npx cap run android` (compila, instala y abre en el móvil o emulador que elijas), o
 `cd android && ./gradlew assembleDebug` para generar `android/app/build/outputs/apk/debug/app-debug.apk`. Con un APK de depuración,
 `chrome://inspect` en el Chrome del ordenador permite inspeccionar la app.
