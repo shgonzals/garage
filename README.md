@@ -15,6 +15,7 @@ App multiplataforma para llevar el mantenimiento de motos y vehículos personale
 npm install        # copia también sql-wasm.wasm a public/assets (postinstall)
 npm run dev        # http://localhost:5173
 npm test           # Vitest: motor de urgencias, ITV, formato y repositorio contra SQLite real
+npm run test:e2e   # Playwright: la app real manejada como un usuario (móvil y escritorio; usa tu Chrome)
 npm run build      # vue-tsc + vite build
 ```
 
@@ -84,7 +85,8 @@ Detalle de cada versión en [CHANGELOG.md](CHANGELOG.md). La versión vive en `p
 
 - [x] **0.1 MVP local:** vehículos, odómetro, registros, motor de urgencias + ITV, timeline, registro rápido, plan de mantenimiento, modo oscuro, tests
 - [x] **0.2:** estilo Taller + Cuadro con 5 temas, escritorio, foto del vehículo, corregir registros y km, exportar/importar, avisos locales y ritmo de km, tareas personalizadas, app Android con logo
-- [ ] **0.3:** seguro e impuesto como vencimientos, adjuntos (tickets y facturas; tabla `documents` ya creada), posponer avisos
-- [ ] **0.4:** Supabase (auth con Google, RLS, sync, borrar cuenta)
-- [ ] **0.5:** repostajes, consumo, coste por mes y km
+- [x] **0.3:** seguro e impuesto como vencimientos, Google Calendar, tests de interfaz
+- [ ] **0.4:** adjuntos (tickets y facturas; tabla `documents` ya creada), posponer avisos
+- [ ] **0.5:** Supabase (auth con Google, RLS, sync, borrar cuenta)
+- [ ] **0.6:** repostajes, consumo, coste por mes y km
 - [ ] **1.0:** beta cerrada, App Store + Google Play

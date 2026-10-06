@@ -3,6 +3,23 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones: [SemVer](https://semver.org/lang/es/)
 (antes de 1.0, cada versión con funciones nuevas sube el número del medio).
 
+## [0.3.0] — 2026-10-06
+
+### Añadido
+- **Seguro e impuesto de circulación** como vencimientos, junto a la ITV: fecha en el vehículo, aviso un mes
+  antes y renovación apuntándolo en el registro rápido (el siguiente vencimiento se calcula solo).
+- **Google Calendar**: botón en cada urgencia con fecha para crear el evento (fecha del vencimiento o la
+  estimada a tu ritmo).
+- **Quitar datos de ejemplo** desde Ajustes.
+- **Tests de interfaz** con Playwright (`npm run test:e2e`).
+
+### Cambiado
+- Tarjetas de vehículo: un testigo de estado en lugar de la franja de color lateral.
+
+### Corregido
+- "Cargar datos de ejemplo" duplicaba los vehículos si se pulsaba dos veces.
+- `npx cap sync` dejaba archivos de Android como modificados en git (solo por los saltos de línea).
+
 ## [0.2.0] — 2026-10-06
 
 ### Añadido
