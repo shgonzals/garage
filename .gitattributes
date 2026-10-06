@@ -1,3 +1,7 @@
 # Scripts de shell con LF siempre: con CRLF, `./gradlew` falla en Linux/macOS/CI.
 android/gradlew text eol=lf
 *.sh text eol=lf
+# Archivos que regenera `npx cap sync` (siempre con LF): sin esto, en Windows git los ve modificados tras cada sync.
+android/capacitor.settings.gradle text eol=lf
+android/app/capacitor.build.gradle text eol=lf
+android/capacitor-cordova-android-plugins/** text eol=lf
