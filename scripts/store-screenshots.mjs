@@ -19,14 +19,14 @@ const TEXT = {
   es: {
     load: 'Cargar datos de ejemplo',
     confirm: 'Cargar',
-    tagline: 'El mantenimiento de tu moto y tu coche, al día',
-    sub: 'Avisos · Consumo · Gastos · Sin cuentas ni anuncios',
+    tagline: 'Apunta lo que le haces\na tu moto o tu coche',
+    sub: 'y te avisa de lo siguiente que toca',
   },
   en: {
     load: 'Load sample data',
     confirm: 'Load',
-    tagline: 'Your bike and car maintenance, on track',
-    sub: 'Reminders · Fuel · Spending · No accounts, no ads',
+    tagline: 'Log the work you do\non your bike or car',
+    sub: 'and it reminds you when the next job is due',
   },
 };
 
@@ -113,7 +113,7 @@ try {
         background: repeating-linear-gradient(135deg, #f5c518 0 24px, #14171b 24px 48px); }
       img { width: 220px; height: 220px; border-radius: 48px; margin: 0 56px 0 80px; }
       h1 { margin: 0; font-size: 92px; letter-spacing: 0.04em; text-transform: uppercase; color: #f5c518; }
-      p { margin: 8px 0 0; font-size: 44px; max-width: 640px; line-height: 1.1; }
+      p { margin: 8px 0 0; font-size: 44px; max-width: 640px; line-height: 1.1; white-space: pre-line; }
       .sub { font-size: 28px; color: #9aa1a9; margin-top: 18px; letter-spacing: 0.02em; }
     </style></head><body>
       <img src="data:image/png;base64,${icon}" alt="" />

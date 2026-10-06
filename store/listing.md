@@ -15,39 +15,29 @@ Límites de Play: nombre 30 caracteres, descripción breve 80, descripción comp
 
 **Nombre** (22): Garage · Mantenimiento
 
-**Descripción breve** (71): Lleva el mantenimiento de tu moto y tu coche: avisos, consumo y gastos.
+**Descripción breve** (78): Apunta lo que le haces a tu moto o tu coche y te avisa de lo que toca después.
 
 **Descripción completa:**
 
-Garage te dice qué le toca a tu moto o a tu coche y cuándo, antes de que se te pase.
+Garage es un cuaderno de mantenimiento para la moto o el coche. Apuntas lo que le haces y la app lleva la cuenta de lo que viene después: el aceite a los 6.000 km o al año, el engrase de cadena cada 500 km, la ITV según la fecha de matriculación, el seguro cuando vence…
 
-🔧 QUÉ TOCA Y CUÁNDO
-Aceite, filtros, cadena, frenos, neumáticos, ITV, seguro, impuesto… Cada tarea con su intervalo por kilómetros o por tiempo: lo que llegue antes manda. Garage calcula tu ritmo de uso y te avisa de lo que se acerca.
+Cada tarea tiene un intervalo en kilómetros, en tiempo o en las dos cosas, y cuenta lo que llegue antes. Los intervalos vienen ya puestos según el tipo de vehículo, pero puedes cambiarlos y añadir tareas que no estén en la lista.
 
-🔔 AVISOS
-Te avisa unos días antes de cada mantenimiento, el día que toca y de lo que se ha quedado vencido. ¿No te viene bien ahora? Pospónlo una semana, un mes o unos kilómetros.
+Con los kilómetros que vas apuntando, Garage calcula cuánto usas el vehículo y te avisa con tiempo. Si algo se queda sin hacer, te lo recuerda una vez a la semana, no todos los días. Y si sabes que no vas a poder hasta dentro de un mes, lo pospones.
 
-⚡ REGISTRO RÁPIDO
-Apunta lo que has hecho en segundos: kilómetros, tareas, coste y notas. El historial de cada vehículo queda como un libro de mantenimiento.
+También puedes anotar los repostajes. Si llenas el depósito cada vez, calcula el consumo real entre un llenado y el siguiente.
 
-⛽ REPOSTAJES Y CONSUMO
-Anota tus repostajes y Garage calcula el consumo real de lleno a lleno.
+Vale para motos, ciclomotores, scooters, coches y furgonetas. Las pit bikes y los karts van por horas de motor en lugar de kilómetros.
 
-🏍️ PARA CADA VEHÍCULO
-Motos, ciclomotores y scooters, coches, furgonetas, pit bikes y karts (estos últimos, por horas de motor). Cada uno con sus tareas propias, y puedes crear las tuyas.
+No hace falta crear una cuenta y no tiene anuncios. Los datos se guardan en el móvil; desde Ajustes puedes exportar una copia y recuperarla si cambias de teléfono.
 
-🔒 TUS DATOS SON TUYOS
-Sin cuentas, sin anuncios y sin conexión: todo se guarda solo en tu móvil. Exporta una copia cuando quieras para no perder nada al cambiar de teléfono.
+Garage Pro es un pago único (no una suscripción) y añade:
+- La pestaña de gastos: lo que llevas gastado por mes y por año, el coste por kilómetro y el consumo medio.
+- Más de dos vehículos.
+- Cuatro temas de color más.
+- Un widget para la pantalla de inicio.
 
-⭐ GARAGE PRO (pago único, sin suscripción)
-• Gastos: cuánto gastas al mes y al año, coste por kilómetro y consumo medio.
-• Vehículos sin límite (la versión gratuita llega hasta 2).
-• Temas de color: Británico, Petróleo, Nocturno y Neón, en claro y oscuro.
-• Widget de escritorio con lo que toca y el registro rápido.
-
-Disponible en español e inglés.
-
-Hecho por Orbita Labs.
+La app está en español y en inglés. Hecha por Orbita Labs.
 
 ---
 
@@ -55,36 +45,26 @@ Hecho por Orbita Labs.
 
 **Name** (27): Garage · Bike & Car Service
 
-**Short description** (78): Track your bike and car maintenance: reminders, fuel consumption and spending.
+**Short description** (78): Log what you do to your bike or car and get reminded when the next job is due.
 
 **Full description:**
 
-Garage tells you what your bike or car needs and when, before it slips your mind.
+Garage is a service log for your motorbike or car. You note down the work you do and it keeps track of what comes next: an oil change at 6,000 km or once a year, chain lube every 500 km, the insurance renewal date, and so on.
 
-🔧 WHAT'S DUE AND WHEN
-Oil, filters, chain, brakes, tyres, inspection, insurance, road tax… Each task has its own interval by distance or time: whichever comes first wins. Garage learns how much you ride or drive and warns you about what's coming up.
+Every task has an interval in kilometres, in time, or both, and whichever comes first counts. Intervals are filled in for each type of vehicle, but you can change them and add tasks that aren't on the list.
 
-🔔 REMINDERS
-Get notified a few days before each service, on the day it's due and about anything overdue. Not a good time? Snooze it for a week, a month or a few hundred km.
+From the mileage you log, Garage works out how much you use the vehicle and reminds you in good time. If something is overdue you get a reminder once a week rather than every day, and if you know it'll have to wait a month, you can snooze it.
 
-⚡ QUICK LOG
-Log what you did in seconds: mileage, tasks, cost and notes. Each vehicle's history becomes its service book.
+You can log fill-ups too. Fill the tank each time and it works out your actual fuel consumption between fills.
 
-⛽ FILL-UPS AND CONSUMPTION
-Log your fill-ups and Garage works out your real fuel consumption from full tank to full tank.
+It works for motorbikes, mopeds, scooters, cars and vans. Pit bikes and karts are tracked by engine hours instead of distance.
 
-🏍️ FOR EVERY VEHICLE
-Motorbikes, mopeds and scooters, cars, vans, pit bikes and karts (the last two by engine hours). Each one with its own tasks, plus any you create.
+There's no account to create and no ads. Your data is stored on the phone, and you can export a backup from Settings to take it to a new one.
 
-🔒 YOUR DATA IS YOURS
-No accounts, no ads, works offline: everything stays on your phone. Export a backup whenever you like so you never lose anything when you change phones.
+Garage Pro is a one-off purchase, not a subscription. It adds:
+- A spending tab: what you've spent by month and year, cost per km and average consumption.
+- More than two vehicles.
+- Four extra colour themes.
+- A home screen widget.
 
-⭐ GARAGE PRO (one-time payment, no subscription)
-• Spending: how much you spend each month and year, cost per km and average consumption.
-• Unlimited vehicles (the free version covers up to 2).
-• Colour themes: British, Petrol, Night and Neon, light and dark.
-• Home screen widget with what's due and a quick log button.
-
-Available in English and Spanish.
-
-Made by Orbita Labs.
+Available in English and Spanish. Made by Orbita Labs.

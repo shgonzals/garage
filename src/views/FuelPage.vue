@@ -229,6 +229,12 @@ function leave(id: string, message: string) {
   font-size: 22px;
   font-weight: 700;
 }
+/* El texto de ayuda ("Opcional", "0,0") con la letra normal: la cifra grande solo para lo que se escribe. */
+.big-input :deep(input::placeholder) {
+  font-family: var(--g-font-body);
+  font-size: 16px;
+  font-weight: 400;
+}
 .flex {
   flex: 1;
 }
