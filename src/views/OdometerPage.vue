@@ -5,20 +5,20 @@
         <ion-buttons slot="start">
           <ion-back-button :default-href="`/vehicles/${id}`" text="" />
         </ion-buttons>
-        <ion-title>Kilómetros</ion-title>
+        <ion-title>{{ info.title }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="ion-padding">
       <p class="g-secondary intro">
-        Los km actuales de <strong>{{ vehicle?.name }}</strong> son la lectura más alta. Si alguna está mal, bórrala
+        {{ info.noun === 'los km' ? 'Los km actuales' : 'Las horas actuales' }} de <strong>{{ vehicle?.name }}</strong> son la lectura más alta. Si alguna está mal, bórrala
         aquí; las que vienen de un registro se corrigen editando ese registro.
       </p>
 
       <form class="add" @submit.prevent="add">
         <ion-input
           v-model="kmText"
-          label="Nueva lectura (km)"
+          :label="`Nueva lectura (${unit})`"
           label-placement="stacked"
           fill="outline"
           type="number"
@@ -46,7 +46,7 @@
             :class="{ bad: suspicious.has(r.id), current: r.km === current }"
           >
             <div class="reading-main">
-              <span class="reading-km">{{ formatKm(r.km) }}</span>
+              <span class="reading-km">{{ formatUsage(r.km, unit) }}</span>
               <span v-if="r.km === current" class="tag">Actual</span>
               <span v-if="suspicious.has(r.id)" class="tag tag-bad">¿Error?</span>
             </div>
@@ -68,7 +68,7 @@
               fill="clear"
               size="small"
               color="danger"
-              :aria-label="`Borrar lectura de ${formatKm(r.km)}`"
+              :aria-label="`Borrar lectura de ${formatUsage(r.km, unit)}`"
               @click="remove(r)"
             >
               <ion-icon slot="icon-only" :icon="trashOutline" />
@@ -96,7 +96,8 @@ import {
   IonToolbar,
 } from '@ionic/vue';
 import { trashOutline } from 'ionicons/icons';
-import { formatDate, formatKm } from '@/domain/format';
+import { formatDate, formatUsage } from '@/domain/format';
+import { UNITS, usageUnit } from '@/domain/units';
 import { suspiciousReadings } from '@/domain/odometer';
 import type { OdometerReading } from '@/domain/types';
 import { useGarageStore } from '@/stores/garage';
@@ -107,7 +108,9 @@ const store = useGarageStore();
 const vehicle = computed(() => store.vehicleById.get(props.id));
 const current = computed(() => store.currentKm.get(props.id) ?? null);
 const readings = ref<OdometerReading[]>([]);
-const suspicious = computed(() => suspiciousReadings(readings.value));
+const unit = computed(() => usageUnit(vehicle.value?.type ?? 'motorcycle'));
+const info = computed(() => UNITS[unit.value]);
+const suspicious = computed(() => suspiciousReadings(readings.value, info.value.maxPerDay));
 
 const kmText = ref('');
 const error = ref<string | null>(null);
@@ -122,11 +125,11 @@ watch(() => store.entries, load, { immediate: true });
 async function add() {
   const km = Number(String(kmText.value ?? '').trim());
   if (String(kmText.value ?? '').trim() === '' || !Number.isInteger(km) || km < 0) {
-    error.value = 'Introduce un número de km válido';
+    error.value = 'Introduce un número entero válido';
     return;
   }
   if (current.value !== null && km < current.value) {
-    error.value = `Es menor que la lectura actual (${formatKm(current.value)}). Si esa está mal, bórrala primero.`;
+    error.value = `Es menor que la lectura actual (${formatUsage(current.value, unit.value)}). Si esa está mal, bórrala primero.`;
     return;
   }
   error.value = null;
@@ -142,7 +145,7 @@ async function add() {
 
 async function remove(r: OdometerReading) {
   const alert = await alertController.create({
-    header: `¿Borrar ${formatKm(r.km)}?`,
+    header: `¿Borrar ${formatUsage(r.km, unit.value)}?`,
     message: `Lectura del ${formatDate(r.read_on)}.`,
     buttons: [
       { text: 'Cancelar', role: 'cancel' },

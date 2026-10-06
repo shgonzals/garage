@@ -3,8 +3,10 @@ import { toIsoDate } from './dates';
 import { ANNUAL_DEADLINES, DEADLINE_SOON_DAYS, deadlineAnchor, nextAnnualDue } from './deadlines';
 import { nextItvDate } from './itv';
 import type { EntryWithItems, IsoDate, Schedule, TaskId, Vehicle } from './types';
+import { usageUnit, type UsageUnit } from './units';
 
-export type Urgency = 'overdue' | 'soon' | 'ok' | 'unknown';
+/** `snoozed`: vencido o próximo, pero aplazado por el usuario (ver domain/snooze.ts). */
+export type Urgency = 'overdue' | 'soon' | 'snoozed' | 'ok' | 'unknown';
 
 export interface LastDone {
   date: IsoDate;
@@ -13,6 +15,8 @@ export interface LastDone {
 
 export interface Reminder {
   vehicleId: string;
+  /** Unidad de los campos "km" (dueKm, remainingKm…): km u horas de motor según el vehículo. */
+  unit: UsageUnit;
   taskId: TaskId;
   status: Urgency;
   last: LastDone | null;
@@ -28,6 +32,8 @@ export interface Reminder {
   progress: number;
   /** Dimensión que manda en la urgencia: la más consumida. */
   trigger: 'km' | 'days' | null;
+  /** Hasta cuándo está aplazado (solo con `status: 'snoozed'`). */
+  snoozedUntil?: { date: IsoDate | null; km: number | null };
 }
 
 export interface ReminderInput {
@@ -49,7 +55,7 @@ export function soonThresholdDays(intervalDays: number): number {
 
 const ITV_SOON_DAYS = 30;
 
-const STATUS_RANK: Record<Urgency, number> = { overdue: 0, soon: 1, ok: 2, unknown: 3 };
+const STATUS_RANK: Record<Urgency, number> = { overdue: 0, soon: 1, snoozed: 2, ok: 3, unknown: 4 };
 
 /** Última vez que se hizo una tarea: la entry más reciente (fecha, luego km) que la contiene. */
 export function findLastDone(entries: EntryWithItems[], taskId: TaskId): LastDone | null {
@@ -95,6 +101,7 @@ function scheduleReminder(input: ReminderInput, schedule: Schedule): Reminder {
 
   const base: Reminder = {
     vehicleId: vehicle.id,
+    unit: usageUnit(vehicle.type),
     taskId: schedule.task_id,
     status: 'unknown',
     last,
@@ -156,6 +163,7 @@ function itvReminder(input: ReminderInput): Reminder | null {
 
   return {
     vehicleId: vehicle.id,
+    unit: usageUnit(vehicle.type),
     taskId: 'itv',
     status,
     last,
@@ -183,6 +191,7 @@ function annualDeadlineReminder(input: ReminderInput, taskId: TaskId & ('insuran
   const remainingDays = differenceInCalendarDays(parseISO(dueDate), parseISO(today));
   return {
     vehicleId: vehicle.id,
+    unit: usageUnit(vehicle.type),
     taskId,
     status: classify(null, remainingDays, null, DEADLINE_SOON_DAYS),
     last: findLastDone(entries, taskId),

@@ -3,6 +3,25 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones: [SemVer](https://semver.org/lang/es/)
 (antes de 1.0, cada versión con funciones nuevas sube el número del medio).
 
+## [0.4.0] — 2026-10-06
+
+### Añadido
+- **Repostajes**: litros, importe (con €/L al momento) y depósito lleno, desde el registro rápido con el
+  selector "Mantenimiento | Repostaje". Su km cuenta como lectura del odómetro.
+- **Consumo** de lleno a lleno (L/100 km, o L/h en vehículos por horas).
+- **Pestaña Gastos**: total del año, gráfico mensual de mantenimiento y combustible, coste por km, consumo
+  medio y comparativa por vehículo.
+- **Posponer avisos** una semana, dos, un mes o unos km/horas; aviso cuando acaba el aplazamiento.
+- **Kart y pitbike**, que se miden en **horas de motor** en lugar de km (sin ITV, matrícula ni vencimientos).
+- **Más tareas de moto** (kit de transmisión, rodillos del variador, aceite de horquilla, sincronizar
+  carburación…) con intervalos sugeridos según el tipo de vehículo.
+
+### Cambiado
+- **Plan de mantenimiento** agrupado por categorías, con filas compactas y un catálogo para añadir tareas.
+- **Registro rápido** muestra primero lo que toca y lo del plan; el resto, en "Más tareas" con buscador.
+- La ficha del vehículo mezcla registros y repostajes en un único **Historial**.
+- Los datos de ejemplo incluyen repostajes.
+
 ## [0.3.0] — 2026-10-06
 
 ### Añadido

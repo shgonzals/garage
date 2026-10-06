@@ -4,6 +4,7 @@ import type { Urgency } from '@/domain/reminders';
 export const STATUS_TONE: Record<Urgency, 'danger' | 'warning' | 'success' | 'neutral'> = {
   overdue: 'danger',
   soon: 'warning',
+  snoozed: 'neutral',
   ok: 'success',
   unknown: 'neutral',
 };

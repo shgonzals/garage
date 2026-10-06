@@ -2,10 +2,11 @@ import { addDays, differenceInCalendarDays, isSaturday, isSunday, nextSaturday, 
 import { toIsoDate } from './dates';
 import type { KmRate } from './forecast';
 import { isAnnualDeadline } from './deadlines';
-import { dueText, formatDate, formatNumber } from './format';
+import { dueText, formatDate, formatUsage } from './format';
 import { soonThresholdDays, soonThresholdKm, type Reminder } from './reminders';
 import { getTask } from './tasks';
 import type { IsoDate, Vehicle } from './types';
+import { usageUnit } from './units';
 
 /**
  * Plan de avisos (notificaciones locales). Función pura: se recalcula entero cada vez que
@@ -15,9 +16,10 @@ import type { IsoDate, Vehicle } from './types';
  * - "Toca": el día en que vence (por fecha, o cuando a tu ritmo llegues a los km).
  * - Vencidos: un resumen semanal por vehículo (sábado), no un aviso diario que acabe ignorado.
  * - Odómetro: si llevas 3 semanas sin apuntar km y hay tareas por km, te los pide.
+ * - Aplazados: un aviso cuando termina el aplazamiento (por fecha, o por km a tu ritmo).
  */
 
-export type AlertKind = 'soon' | 'due' | 'overdue' | 'odometer';
+export type AlertKind = 'soon' | 'due' | 'overdue' | 'odometer' | 'snooze';
 
 export interface PlannedAlert {
   /** Estable por vehículo + tarea + tipo: reprogramar sustituye en lugar de duplicar. */
@@ -64,6 +66,21 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
     const name = vehicle.name;
 
     for (const r of reminders) {
+      if (r.status === 'snoozed' && r.snoozedUntil) {
+        const { date, km } = r.snoozedUntil;
+        const end = date ?? (km !== null && rate ? rawDateForKm(rate, km) : null);
+        if (end && end >= today) {
+          add({
+            key: `snooze:${vehicle.id}:${r.taskId}`,
+            kind: 'snooze',
+            at: atHour(end, hour),
+            title: `${name} · ${getTask(r.taskId).label}`,
+            body: 'Te lo recordamos: lo habías pospuesto hasta ahora.',
+            vehicleId: vehicle.id,
+          });
+        }
+        continue;
+      }
       if (r.status !== 'ok' && r.status !== 'soon') continue;
       const label = getTask(r.taskId).label;
       const kmDue = rate && r.dueKm !== null ? rawDateForKm(rate, r.dueKm) : null;
@@ -96,7 +113,7 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         at: atHour(due, hour),
         title: `${name} · ${label}`,
         body: dueByKm
-          ? `A tu ritmo ya rondarás los ${formatNumber(r.dueKm!)} km: toca hacerlo.`
+          ? `A tu ritmo ya rondarás ${r.unit === 'km' ? 'los' : 'las'} ${formatUsage(r.dueKm!, r.unit)}: toca hacerlo.`
           : isAnnualDeadline(r.taskId)
             ? 'Vence hoy. Cuando lo renueves, apúntalo en Garage.'
             : `Toca hoy (${dueText(r)}).`,
@@ -117,6 +134,7 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
     }
 
     const usesKm = reminders.some((r) => r.intervalKm !== null);
+    const hours = usageUnit(vehicle.type) === 'h';
     if (usesKm && lastReadingDate) {
       let at = atHour(shiftDays(lastReadingDate, ODOMETER_STALE_DAYS), ODOMETER_HOUR);
       if (at <= now) at = weekly(now, ODOMETER_HOUR, isSunday, nextSunday);
@@ -125,8 +143,10 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         key: `odometer:${vehicle.id}`,
         kind: 'odometer',
         at,
-        title: `${name} · ¿Cuántos km tiene?`,
-        body: `Hace ${days} días que no apuntas los km. Actualízalos para que los avisos por km sean fiables.`,
+        title: hours ? `${name} · ¿Cuántas horas lleva?` : `${name} · ¿Cuántos km tiene?`,
+        body: hours
+          ? `Hace ${days} días que no apuntas las horas. Actualízalas para que los avisos por horas sean fiables.`
+          : `Hace ${days} días que no apuntas los km. Actualízalos para que los avisos por km sean fiables.`,
         vehicleId: vehicle.id,
       });
     }

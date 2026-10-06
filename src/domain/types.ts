@@ -3,7 +3,7 @@ export type IsoDate = string;
 /** Instante en formato ISO 8601 completo (UTC). */
 export type IsoDateTime = string;
 
-export type VehicleType = 'motorcycle' | 'moped' | 'car' | 'van';
+export type VehicleType = 'motorcycle' | 'moped' | 'car' | 'van' | 'pitbike' | 'kart';
 
 /** Tareas del catálogo (domain/tasks.ts). */
 export type BuiltinTaskId =
@@ -19,6 +19,16 @@ export type BuiltinTaskId =
   | 'brake_pads'
   | 'tires'
   | 'battery'
+  | 'fuel_filter'
+  | 'throttle_sync'
+  | 'chain_kit'
+  | 'clutch_fluid'
+  | 'drive_belt'
+  | 'variator_rollers'
+  | 'gear_oil'
+  | 'brake_discs'
+  | 'fork_oil'
+  | 'steering_bearings'
   | 'itv'
   | 'insurance'
   | 'road_tax'
@@ -59,6 +69,8 @@ export interface OdometerReading extends Row {
   source: 'manual' | 'entry';
   /** Registro que generó la lectura (`source = 'entry'`): se edita y borra con él. */
   entry_id: string | null;
+  /** Repostaje que generó la lectura: se edita y borra con él. */
+  fuel_id?: string | null;
 }
 
 export interface Entry extends Row {

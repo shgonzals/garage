@@ -6,8 +6,11 @@ import { backupFileName, parseBackup, type BackupTable } from '@/domain/backup';
 import { todayIso } from '@/domain/dates';
 import { compareReminders, computeReminders, summarize, type Reminder, type VehicleSummary } from '@/domain/reminders';
 import type { CustomTaskInput, QuickLogData, ScheduleInput, VehicleData } from '@/domain/schemas';
-import { registerCustomTasks, TASKS, type TaskDef } from '@/domain/tasks';
+import { registerCustomTasks, TASKS, tasksForType, type TaskDef } from '@/domain/tasks';
 import { estimateKmRate, estimatedKmDueDate, type KmRate } from '@/domain/forecast';
+import type { FuelData, FuelLog } from '@/domain/fuel';
+import { applySnoozes, type Snooze, type SnoozeUntil } from '@/domain/snooze';
+import { unitInfo } from '@/domain/units';
 import type {
   CustomTask,
   CustomTaskId,
@@ -29,6 +32,8 @@ export const useGarageStore = defineStore('garage', () => {
   const currentKm = ref(new Map<string, number>());
   const readings = ref<OdometerReading[]>([]);
   const customTasks = ref<CustomTask[]>([]);
+  const snoozes = ref<Snooze[]>([]);
+  const fuelLogs = ref<FuelLog[]>([]);
   const today = ref(todayIso());
 
   function r(): GarageRepository {
@@ -44,17 +49,21 @@ export const useGarageStore = defineStore('garage', () => {
 
   /** Volumen de datos personal (decenas de vehículos, cientos de entries): se carga todo en memoria. */
   async function reload() {
-    const [v, e, s, km, rd, ct] = await Promise.all([
+    const [v, e, s, km, rd, ct, sn, fl] = await Promise.all([
       r().listVehicles(),
       r().listEntries(),
       r().listSchedules(),
       r().currentKmByVehicle(),
       r().listAllReadings(),
       r().listCustomTasks(),
+      r().listSnoozes(),
+      r().listFuelLogs(),
     ]);
     // Antes que el resto: los derivados (recordatorios, etiquetas) resuelven nombres con getTask.
     registerCustomTasks(ct);
     customTasks.value = ct;
+    snoozes.value = sn;
+    fuelLogs.value = fl;
     vehicles.value = v;
     entries.value = e;
     schedules.value = s;
@@ -80,16 +89,16 @@ export const useGarageStore = defineStore('garage', () => {
   const remindersByVehicle = computed(() => {
     const map = new Map<string, Reminder[]>();
     for (const vehicle of vehicles.value) {
-      map.set(
-        vehicle.id,
-        computeReminders({
-          vehicle,
-          currentKm: currentKm.value.get(vehicle.id) ?? null,
-          schedules: schedules.value.filter((s) => s.vehicle_id === vehicle.id),
-          entries: entriesByVehicle.value.get(vehicle.id) ?? [],
-          today: today.value,
-        }),
-      );
+      const km = currentKm.value.get(vehicle.id) ?? null;
+      const reminders = computeReminders({
+        vehicle,
+        currentKm: km,
+        schedules: schedules.value.filter((s) => s.vehicle_id === vehicle.id),
+        entries: entriesByVehicle.value.get(vehicle.id) ?? [],
+        today: today.value,
+      });
+      // Los aplazados pasan a `snoozed` y se reordenan (dejan de contar como vencidos).
+      map.set(vehicle.id, applySnoozes(reminders, snoozes.value, km, today.value).sort(compareReminders));
     }
     return map;
   });
@@ -100,12 +109,13 @@ export const useGarageStore = defineStore('garage', () => {
     return map;
   });
 
-  /** Tareas que se pueden registrar en un vehículo: catálogo + sus personalizadas vigentes. */
+  /** Tareas que se pueden registrar en un vehículo: catálogo de su tipo + sus personalizadas vigentes. */
   function tasksFor(vehicleId: string): TaskDef[] {
-    const own = customTasks.value
+    const vehicle = vehicleById.value.get(vehicleId);
+    const own: TaskDef[] = customTasks.value
       .filter((t) => t.vehicle_id === vehicleId && !t.deleted_at)
-      .map((t) => ({ id: t.id, label: t.label, emoji: t.emoji, defaults: {} }));
-    return [...TASKS, ...own];
+      .map((t) => ({ id: t.id, label: t.label, emoji: t.emoji, category: 'otros', defaults: {} }));
+    return [...(vehicle ? tasksForType(vehicle.type) : TASKS), ...own];
   }
 
   /** Lecturas por vehículo (orden por fecha). */
@@ -122,7 +132,9 @@ export const useGarageStore = defineStore('garage', () => {
   /** Ritmo de uso (km/día) de cada vehículo; `null` si aún no hay datos suficientes. */
   const kmRates = computed(() => {
     const map = new Map<string, KmRate | null>();
-    for (const v of vehicles.value) map.set(v.id, estimateKmRate(readingsByVehicle.value.get(v.id) ?? []));
+    for (const v of vehicles.value) {
+      map.set(v.id, estimateKmRate(readingsByVehicle.value.get(v.id) ?? [], unitInfo(v.type).maxPerDay));
+    }
     return map;
   });
 
@@ -188,6 +200,32 @@ export const useGarageStore = defineStore('garage', () => {
 
   async function deleteEntry(id: string) {
     await r().deleteEntry(id);
+    await reload();
+  }
+
+  async function logFuel(data: FuelData): Promise<string> {
+    const id = await r().createFuel(data);
+    await reload();
+    return id;
+  }
+
+  async function updateFuel(id: string, data: FuelData) {
+    await r().updateFuel(id, data);
+    await reload();
+  }
+
+  async function deleteFuel(id: string) {
+    await r().deleteFuel(id);
+    await reload();
+  }
+
+  async function snooze(vehicleId: string, taskId: TaskId, until: SnoozeUntil) {
+    await r().snooze(vehicleId, taskId, until);
+    await reload();
+  }
+
+  async function unsnooze(vehicleId: string, taskId: TaskId) {
+    await r().unsnooze(vehicleId, taskId);
     await reload();
   }
 
@@ -260,6 +298,12 @@ export const useGarageStore = defineStore('garage', () => {
     listReadings,
     deleteReading,
     saveSchedules,
+    fuelLogs,
+    logFuel,
+    updateFuel,
+    deleteFuel,
+    snooze,
+    unsnooze,
     createCustomTask,
     renameCustomTask,
     deleteCustomTask,

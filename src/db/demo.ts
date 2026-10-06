@@ -21,6 +21,29 @@ export async function seedDemoData(repo: GarageRepository, today = new Date()): 
   const ago = (days: number) => toIsoDate(subDays(today, days));
   const yearsAgo = (years: number) => toIsoDate(subYears(today, years));
   const inDays = (days: number) => toIsoDate(addDays(today, days));
+  /** Repostajes cada `every` días con el km interpolado entre lecturas conocidas [díasAtrás, km]. */
+  const fuelUps = async (vehicle_id: string, known: [number, number][], from: number, every: number, per100: number, price: number) => {
+    const kmAt = (days: number) => {
+      const i = known.findIndex(([d]) => d >= days); // primera lectura igual o más antigua
+      if (i === -1) return known.at(-1)![1];
+      if (i === 0) return known[0]![1];
+      const [dNew, kNew] = known[i - 1]!;
+      const [dOld, kOld] = known[i]!;
+      return Math.round(kOld + ((kNew - kOld) * (dOld - days)) / (dOld - dNew));
+    };
+    let prev = kmAt(from + every);
+    for (let days = from; days > 0; days -= every) {
+      const km = kmAt(days);
+      // Algo de variación para que el consumo no sea una línea recta.
+      const liters = Math.round(((km - prev) * per100 * (0.92 + ((days * 7) % 17) / 100)) / 10) / 10;
+      prev = km;
+      if (liters <= 0) continue;
+      await repo.createFuel({
+        vehicle_id, filled_on: ago(days), odometer_km: km, liters, cost: Math.round(liters * price * 100) / 100,
+        full_tank: true, notes: null,
+      });
+    }
+  };
   const log = (vehicle_id: string, daysAgo: number, km: number, task_ids: TaskId[], cost: number | null = null, notes: string | null = null) =>
     repo.createEntry({ vehicle_id, done_on: ago(daysAgo), odometer_km: km, task_ids, cost, notes });
 
@@ -34,6 +57,7 @@ export async function seedDemoData(repo: GarageRepository, today = new Date()): 
   await log(cbr.id, 3, 22700, ['chain_lube']);
   await log(cbr.id, 300, 17900, ['itv'], 38.6);
   await repo.addOdometerReading(cbr.id, 23050, ago(0));
+  await fuelUps(cbr.id, [[0, 23050], [3, 22700], [49, 22000], [206, 18200]], 200, 12, 5.4, 1.69);
 
   const scrambler = await repo.createVehicle(
     { name: 'Scrambler', type: 'motorcycle', make: 'Ducati', model: 'Scrambler Icon', plate: '5678BCD', first_registration: yearsAgo(2), insurance_due: inDays(240), road_tax_due: null, initial_km: 6000, photo: null },
@@ -42,6 +66,7 @@ export async function seedDemoData(repo: GarageRepository, today = new Date()): 
   await log(scrambler.id, 90, 6500, ['oil'], 95);
   await log(scrambler.id, 20, 8000, ['chain_lube', 'chain_tension']);
   await repo.addOdometerReading(scrambler.id, 8410, ago(0));
+  await fuelUps(scrambler.id, [[0, 8410], [20, 8000], [90, 6500]], 85, 11, 4.9, 1.69);
 
   const corolla = await repo.createVehicle(
     { name: 'Corolla', type: 'car', make: 'Toyota', model: 'Corolla Hybrid', plate: '9012FGH', first_registration: yearsAgo(6), insurance_due: inDays(95), road_tax_due: inDays(60), initial_km: 135000, photo: null },
@@ -51,6 +76,7 @@ export async function seedDemoData(repo: GarageRepository, today = new Date()): 
   await log(corolla.id, 100, 139000, ['itv'], 45);
   await log(corolla.id, 400, 125000, ['timing_belt'], 450);
   await repo.addOdometerReading(corolla.id, 142300, ago(0));
+  await fuelUps(corolla.id, [[0, 142300], [60, 140000], [100, 139000]], 98, 14, 4.6, 1.59);
   return true;
 }
 

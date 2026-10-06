@@ -9,18 +9,18 @@
     </svg>
 
     <div class="center">
-      <span class="caption">Odómetro</span>
-      <button type="button" class="digits" :aria-label="`${km ?? 'Sin'} km. Actualizar`" @click="$emit('update')">
+      <span class="caption">{{ unit === 'km' ? 'Odómetro' : 'Horas de motor' }}</span>
+      <button type="button" class="digits" :aria-label="`${km ?? 'Sin'} ${unit}. Actualizar`" @click="$emit('update')">
         <span v-for="(d, i) in digits" :key="i" class="digit" :class="{ lead: d.lead, last: i === digits.length - 1 }">
           {{ d.char }}
         </span>
-        <span class="unit">km</span>
+        <span class="unit">{{ unit }}</span>
       </button>
       <span v-if="next" class="next">
         {{ next.status === 'overdue' ? 'Vencido' : 'Próximo' }} · <strong>{{ nextText }}</strong>
       </span>
       <span v-else class="next">Sin mantenimientos programados</span>
-      <button type="button" class="update" @click="$emit('update')">Actualizar km</button>
+      <button type="button" class="update" @click="$emit('update')">Actualizar {{ unit === 'km' ? 'km' : 'horas' }}</button>
     </div>
   </div>
 </template>
@@ -29,13 +29,15 @@
 import { computed } from 'vue';
 import { nextServiceText, reminderGauge } from '@/domain/format';
 import type { Reminder } from '@/domain/reminders';
+import type { UsageUnit } from '@/domain/units';
 import { STATUS_TONE } from './status';
 
 /**
  * Cuadro de instrumentos de la ficha: odómetro de rodillos en el centro y un arco que se llena
  * a medida que se acerca el próximo mantenimiento (`next`, el recordatorio más urgente).
  */
-const props = defineProps<{ km: number | null; next: Reminder | null }>();
+/** `km`: el valor del odómetro, en la unidad del vehículo (`unit`: km u horas de motor). */
+const props = withDefaults(defineProps<{ km: number | null; next: Reminder | null; unit?: UsageUnit }>(), { unit: 'km' });
 defineEmits<{ update: [] }>();
 
 // Semicírculo de radio 150 centrado en (180, 196); marcas cada 30°, de r=160 a r=172.

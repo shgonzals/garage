@@ -11,6 +11,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/tabs/garage' },
       { path: 'garage', component: () => import('@/views/GaragePage.vue') },
       { path: 'reminders', component: () => import('@/views/RemindersPage.vue') },
+      { path: 'stats', component: () => import('@/views/StatsPage.vue') },
       { path: 'settings', component: () => import('@/views/SettingsPage.vue') },
     ],
   },
@@ -21,6 +22,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/vehicles/:id/km', component: () => import('@/views/OdometerPage.vue'), props: true },
   { path: '/log', component: () => import('@/views/QuickLogPage.vue') },
   { path: '/entries/:entryId/edit', component: () => import('@/views/QuickLogPage.vue'), props: true },
+  { path: '/fuel', component: () => import('@/views/FuelPage.vue') },
+  { path: '/fuel/:fuelId/edit', component: () => import('@/views/FuelPage.vue'), props: true },
   { path: '/:pathMatch(.*)*', redirect: '/tabs/garage' },
 ];
 

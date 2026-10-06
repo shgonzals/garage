@@ -25,22 +25,9 @@
       </div>
 
       <form v-else @submit.prevent="save">
+        <LogModeSwitch v-if="!editing" mode="maintenance" :vehicle-id="vehicleId" />
         <!-- Vehículo (al editar no se cambia: el registro pertenece a su historial) -->
-        <div v-if="!editing && store.vehicles.length > 1" class="vehicle-picker" role="radiogroup" aria-label="Vehículo">
-          <button
-            v-for="v in store.vehicles"
-            :key="v.id"
-            type="button"
-            role="radio"
-            :aria-checked="v.id === vehicleId"
-            class="pick"
-            :class="{ active: v.id === vehicleId }"
-            @click="selectVehicle(v.id)"
-          >
-            <VehicleAvatar :photo="v.photo" :type="v.type" :size="24" />
-            {{ v.name }}
-          </button>
-        </div>
+        <VehiclePicker v-if="!editing" :model-value="vehicleId" @update:model-value="selectVehicle" />
         <p v-if="errors.vehicle_id" class="g-error">{{ errors.vehicle_id }}</p>
 
         <!-- Km + fecha -->
@@ -48,7 +35,7 @@
           <ion-input
             v-model="kmText"
             class="big-input"
-            label="Km"
+            :label="unit === 'km' ? 'Km' : 'Horas'"
             label-placement="stacked"
             fill="outline"
             type="number"
@@ -71,9 +58,10 @@
 
         <!-- Tareas -->
         <h3 class="g-section-title tasks-title">¿Qué has hecho?</h3>
+        <!-- Lo relevante: lo que toca ahora, lo del plan y lo ya marcado -->
         <div class="tasks">
           <button
-            v-for="t in orderedTasks"
+            v-for="t in primaryTasks"
             :key="t.id"
             type="button"
             class="task"
@@ -86,6 +74,47 @@
           </button>
         </div>
         <p v-if="errors.task_ids" class="g-error">{{ errors.task_ids }}</p>
+
+        <!-- El resto del catálogo, plegado y con buscador -->
+        <button
+          v-if="otherTasks.length > 0"
+          type="button"
+          class="more-toggle"
+          :aria-expanded="moreOpen"
+          @click="moreOpen = !moreOpen"
+        >
+          <ion-icon :icon="moreOpen ? removeIcon : addIcon" aria-hidden="true" />
+          Más tareas
+          <span class="g-muted more-count">{{ otherTasks.length }}</span>
+        </button>
+        <div v-if="moreOpen" class="more">
+          <ion-input
+            v-model="search"
+            class="search"
+            label="Buscar tarea"
+            label-placement="stacked"
+            fill="outline"
+            placeholder="Horquilla, embrague…"
+            :clear-input="true"
+          />
+          <div v-for="group in otherGroups" :key="group.id" class="more-group">
+            <h4 class="more-title">{{ group.label }}</h4>
+            <div class="tasks">
+              <button
+                v-for="t in group.tasks"
+                :key="t.id"
+                type="button"
+                class="task"
+                :aria-pressed="false"
+                @click="toggle(t.id)"
+              >
+                <span aria-hidden="true">{{ t.emoji }}</span>
+                {{ t.label }}
+              </button>
+            </div>
+          </div>
+          <p v-if="otherGroups.length === 0" class="g-secondary">Ninguna tarea coincide con «{{ search }}».</p>
+        </div>
 
         <!-- Opcional -->
         <div class="row optional">
@@ -129,6 +158,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonPage,
   IonTextarea,
@@ -138,9 +168,12 @@ import {
   toastController,
   useIonRouter,
 } from '@ionic/vue';
-import VehicleAvatar from '@/components/VehicleAvatar.vue';
+import { add as addIcon, remove as removeIcon } from 'ionicons/icons';
+import LogModeSwitch from '@/components/LogModeSwitch.vue';
+import VehiclePicker from '@/components/VehiclePicker.vue';
 import { fieldErrors, quickLogSchema } from '@/domain/schemas';
-import { getTask } from '@/domain/tasks';
+import { getTask, TASK_CATEGORIES } from '@/domain/tasks';
+import { usageUnit } from '@/domain/units';
 import type { TaskId } from '@/domain/types';
 import { useGarageStore } from '@/stores/garage';
 
@@ -159,6 +192,8 @@ const initialVehicle =
     : (store.vehicles[0]?.id ?? ''));
 
 const vehicleId = ref(initialVehicle);
+/** Unidad del vehículo elegido: km, u horas de motor en pit bike y kart. */
+const unit = computed(() => usageUnit(store.vehicleById.get(vehicleId.value)?.type ?? 'motorcycle'));
 const kmText = ref(editing ? (editing.odometer_km?.toString() ?? '') : kmFor(initialVehicle));
 const doneOn = ref(editing?.done_on ?? store.today);
 const selected = ref(new Set<TaskId>(editing?.items.map((i) => i.task_id)));
@@ -187,14 +222,43 @@ const vehicleTasks = computed(() => {
   const missing = [...selected.value].filter((id) => !tasks.some((t) => t.id === id)).map(getTask);
   return [...tasks, ...missing];
 });
-const orderedTasks = computed(() =>
-  editing
-    ? vehicleTasks.value // al editar, orden fijo: las sugerencias de "ahora" no aplican a un registro pasado
-    : [
-        ...vehicleTasks.value.filter((t) => suggested.value.has(t.id)),
-        ...vehicleTasks.value.filter((t) => !suggested.value.has(t.id)),
-      ],
-);
+/** Tareas con plan activo en el vehículo, y vencimientos por fecha que tienen recordatorio. */
+const relevant = computed(() => {
+  const ids = new Set<TaskId>(
+    store.schedules.filter((s) => s.vehicle_id === vehicleId.value && s.enabled).map((s) => s.task_id),
+  );
+  for (const r of store.remindersByVehicle.get(vehicleId.value) ?? []) ids.add(r.taskId);
+  ids.add('other');
+  return ids;
+});
+
+/**
+ * Arriba: lo que toca ahora (vencido o pronto), lo del plan y lo ya marcado. Lo que se marca desde
+ * "Más tareas" sube aquí, para ver siempre todo lo que se va a guardar.
+ */
+const primaryTasks = computed(() => {
+  const shown = vehicleTasks.value.filter(
+    (t) => selected.value.has(t.id) || suggested.value.has(t.id) || relevant.value.has(t.id),
+  );
+  // Al editar, orden fijo: las sugerencias de "ahora" no aplican a un registro pasado.
+  if (editing) return shown;
+  return [...shown.filter((t) => suggested.value.has(t.id)), ...shown.filter((t) => !suggested.value.has(t.id))];
+});
+
+const moreOpen = ref(false);
+const search = ref('');
+const otherTasks = computed(() => vehicleTasks.value.filter((t) => !primaryTasks.value.includes(t)));
+
+/** Sin tildes ni mayúsculas: "embrague" encuentra "Líquido de embrague". */
+const normalize = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
+const otherGroups = computed(() => {
+  const q = normalize(String(search.value ?? '').trim());
+  const matching = otherTasks.value.filter((t) => !q || normalize(t.label).includes(q));
+  return TASK_CATEGORIES.map((c) => ({ ...c, tasks: matching.filter((t) => t.category === c.id) })).filter(
+    (g) => g.tasks.length > 0,
+  );
+});
 
 function toggle(id: TaskId) {
   const next = new Set(selected.value);
@@ -262,34 +326,6 @@ function leave(vehicleId: string, message: string) {
 </script>
 
 <style scoped>
-.vehicle-picker {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 16px;
-}
-.pick {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 5px 14px 5px 5px;
-  border-radius: 999px;
-  border: 1px solid var(--g-border);
-  background: var(--g-surface);
-  color: var(--g-text);
-  cursor: pointer;
-}
-.pick.active {
-  background: var(--g-accent);
-  border-color: var(--g-accent);
-  color: var(--g-on-accent);
-  box-shadow: var(--g-shadow-md);
-}
 .row {
   display: flex;
   gap: 12px;
@@ -333,6 +369,50 @@ function leave(vehicleId: string, message: string) {
   border-color: var(--g-accent);
   color: var(--g-on-accent);
   box-shadow: var(--g-shadow-md);
+}
+.more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 0 12px;
+  border: 1px dashed var(--g-border-strong);
+  border-radius: var(--g-radius-md);
+  background: none;
+  color: var(--g-text);
+  font-family: var(--g-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.more-toggle ion-icon {
+  font-size: 18px;
+  color: var(--g-accent-text);
+}
+.more-count {
+  margin-left: auto;
+  font-family: var(--g-font-mono);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.more {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.more-title {
+  margin: 0 0 6px;
+  font-family: var(--g-font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--g-text-secondary);
 }
 .optional {
   margin-top: 24px;

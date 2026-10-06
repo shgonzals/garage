@@ -12,6 +12,10 @@
           <ion-label>Recordatorios</ion-label>
           <ion-badge v-if="overdueCount > 0" color="danger">{{ overdueCount }}</ion-badge>
         </ion-tab-button>
+        <ion-tab-button tab="stats" href="/tabs/stats">
+          <ion-icon :icon="walletOutline" aria-hidden="true" />
+          <ion-label>Gastos</ion-label>
+        </ion-tab-button>
         <ion-tab-button tab="settings" href="/tabs/settings">
           <ion-icon :icon="settingsOutline" aria-hidden="true" />
           <ion-label>Ajustes</ion-label>
@@ -24,7 +28,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { IonBadge, IonIcon, IonLabel, IonPage, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/vue';
-import { alarmOutline, carSportOutline, settingsOutline } from 'ionicons/icons';
+import { alarmOutline, carSportOutline, settingsOutline, walletOutline } from 'ionicons/icons';
 import { useGarageStore } from '@/stores/garage';
 
 const store = useGarageStore();

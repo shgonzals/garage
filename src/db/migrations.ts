@@ -9,7 +9,7 @@ import type { SqlDatabase } from './sql';
  * - Dinero en céntimos (INTEGER) + `currency`.
  * - Fechas de calendario `YYYY-MM-DD`; instantes ISO 8601 UTC.
  */
-export const MIGRATIONS: readonly { version: number; sql: string }[] = [
+export const MIGRATIONS: readonly { version: number; sql: string; foreignKeysOff?: boolean }[] = [
   {
     version: 1,
     sql: `
@@ -138,6 +138,75 @@ export const MIGRATIONS: readonly { version: number; sql: string }[] = [
       ALTER TABLE vehicles ADD COLUMN road_tax_due TEXT;
     `,
   },
+  {
+    // Pit bike y kart. La tabla nació con CHECK (type IN (...)) y SQLite no permite cambiarlo:
+    // se reconstruye sin esa lista (el tipo lo valida Zod). Procedimiento oficial de SQLite para
+    // reconstruir una tabla con hijos: claves foráneas desactivadas durante la copia.
+    version: 6,
+    foreignKeysOff: true,
+    sql: `
+      CREATE TABLE vehicles_new (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        make TEXT,
+        model TEXT,
+        plate TEXT,
+        first_registration TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        deleted_at TEXT,
+        photo TEXT,
+        insurance_due TEXT,
+        road_tax_due TEXT
+      );
+      INSERT INTO vehicles_new (id, name, type, make, model, plate, first_registration, created_at, updated_at,
+        deleted_at, photo, insurance_due, road_tax_due)
+        SELECT id, name, type, make, model, plate, first_registration, created_at, updated_at,
+        deleted_at, photo, insurance_due, road_tax_due FROM vehicles;
+      DROP TABLE vehicles;
+      ALTER TABLE vehicles_new RENAME TO vehicles;
+    `,
+  },
+  {
+    version: 7,
+    sql: `
+      -- Aplazamientos de recordatorios ("recuérdamelo más tarde"): uno por vehículo y tarea.
+      CREATE TABLE snoozes (
+        vehicle_id TEXT NOT NULL REFERENCES vehicles(id),
+        task_id TEXT NOT NULL,
+        until_date TEXT,
+        until_km INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        deleted_at TEXT,
+        PRIMARY KEY (vehicle_id, task_id)
+      );
+    `,
+  },
+  {
+    version: 8,
+    sql: `
+      -- Repostajes. Litros en centilitros enteros (como el dinero en céntimos).
+      CREATE TABLE fuel_logs (
+        id TEXT PRIMARY KEY NOT NULL,
+        vehicle_id TEXT NOT NULL REFERENCES vehicles(id),
+        filled_on TEXT NOT NULL,
+        odometer_km INTEGER CHECK (odometer_km >= 0),
+        centiliters INTEGER NOT NULL CHECK (centiliters > 0),
+        cost_cents INTEGER CHECK (cost_cents >= 0),
+        currency TEXT NOT NULL DEFAULT 'EUR',
+        full_tank INTEGER NOT NULL DEFAULT 1,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        deleted_at TEXT
+      );
+      CREATE INDEX idx_fuel_vehicle ON fuel_logs (vehicle_id, filled_on);
+      -- El km de un repostaje es una lectura más del odómetro, enlazada para corregirla con él.
+      ALTER TABLE odometer_readings ADD COLUMN fuel_id TEXT REFERENCES fuel_logs(id);
+    `,
+  },
 ];
 
 export async function migrate(db: SqlDatabase): Promise<number> {
@@ -153,13 +222,19 @@ export async function migrate(db: SqlDatabase): Promise<number> {
       .map((s) => s.replace(/--.*$/gm, '').trim())
       .filter(Boolean)
       .map((sql) => ({ sql }));
-    await db.batch([
-      ...statements,
-      {
-        sql: 'INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)',
-        params: [m.version, new Date().toISOString()],
-      },
-    ]);
+    // PRAGMA foreign_keys no tiene efecto dentro de una transacción: va fuera del batch.
+    if (m.foreignKeysOff) await db.run('PRAGMA foreign_keys = OFF');
+    try {
+      await db.batch([
+        ...statements,
+        {
+          sql: 'INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)',
+          params: [m.version, new Date().toISOString()],
+        },
+      ]);
+    } finally {
+      if (m.foreignKeysOff) await db.run('PRAGMA foreign_keys = ON');
+    }
   }
   return MIGRATIONS.at(-1)?.version ?? 0;
 }

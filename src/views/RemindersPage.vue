@@ -70,6 +70,7 @@ const filter = ref<string>('all');
 const GROUPS: { status: Urgency; title: string }[] = [
   { status: 'overdue', title: 'Vencidos' },
   { status: 'soon', title: 'Pronto' },
+  { status: 'snoozed', title: 'Pospuestos' },
   { status: 'ok', title: 'Al día' },
   { status: 'unknown', title: 'Sin historial' },
 ];

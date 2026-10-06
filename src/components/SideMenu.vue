@@ -79,7 +79,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { IonContent, IonIcon, IonMenu, useIonRouter } from '@ionic/vue';
-import { add, alarmOutline, carSportOutline, flash, menuOutline, settingsOutline } from 'ionicons/icons';
+import { add, alarmOutline, carSportOutline, flash, menuOutline, settingsOutline, walletOutline } from 'ionicons/icons';
 import { useDesktop } from '@/composables/useDesktop';
 import { sidebarCollapsed } from '@/composables/useSidebar';
 import { useGarageStore } from '@/stores/garage';
@@ -90,6 +90,7 @@ import VehicleAvatar from './VehicleAvatar.vue';
 const NAV = [
   { path: '/tabs/garage', label: 'Mi garage', icon: carSportOutline },
   { path: '/tabs/reminders', label: 'Recordatorios', icon: alarmOutline },
+  { path: '/tabs/stats', label: 'Gastos', icon: walletOutline },
   { path: '/tabs/settings', label: 'Ajustes', icon: settingsOutline },
 ];
 

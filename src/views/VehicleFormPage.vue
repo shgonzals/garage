@@ -52,19 +52,27 @@
         </div>
 
         <div class="fields">
-          <ion-input v-model="form.name" label="Nombre" label-placement="stacked" fill="outline" placeholder="CBR600RR" :maxlength="60" />
+          <ion-input v-model="form.name" label="Nombre" label-placement="stacked" fill="outline" :placeholder="examples.name" :maxlength="60" />
           <p v-if="errors.name" class="g-error">{{ errors.name }}</p>
 
           <div class="row">
-            <ion-input v-model="form.make" label="Marca" label-placement="stacked" fill="outline" placeholder="Honda" />
-            <ion-input v-model="form.model" label="Modelo" label-placement="stacked" fill="outline" placeholder="CBR600RR" />
+            <ion-input v-model="form.make" label="Marca" label-placement="stacked" fill="outline" :placeholder="examples.make" />
+            <ion-input v-model="form.model" label="Modelo" label-placement="stacked" fill="outline" :placeholder="examples.model" />
           </div>
 
           <div class="row">
-            <ion-input v-model="form.plate" label="Matrícula" label-placement="stacked" fill="outline" placeholder="1234ABC" autocapitalize="characters" />
+            <ion-input
+              v-if="onRoad"
+              v-model="form.plate"
+              label="Matrícula"
+              label-placement="stacked"
+              fill="outline"
+              placeholder="1234ABC"
+              autocapitalize="characters"
+            />
             <ion-input
               v-model="kmText"
-              label="Km actuales"
+              :label="unitInfo(form.type).current"
               label-placement="stacked"
               fill="outline"
               type="number"
@@ -75,6 +83,7 @@
           <p v-if="errors.initial_km" class="g-error">{{ errors.initial_km }}</p>
 
           <ion-input
+            v-if="onRoad"
             v-model="form.first_registration"
             label="Primera matriculación"
             label-placement="stacked"
@@ -86,9 +95,9 @@
           <p v-if="errors.first_registration" class="g-error">{{ errors.first_registration }}</p>
         </div>
 
-        <!-- Vencimientos anuales -->
-        <h3 class="g-section-title deadlines-title">Vencimientos</h3>
-        <div class="fields">
+        <!-- Vencimientos anuales (solo vehículos de carretera) -->
+        <h3 v-if="onRoad" class="g-section-title deadlines-title">Vencimientos</h3>
+        <div v-if="onRoad" class="fields">
           <div class="row">
             <ion-input
               v-model="form.insurance_due"
@@ -127,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { Capacitor } from '@capacitor/core';
 import {
   actionSheetController,
@@ -147,7 +156,8 @@ import {
 import { camera, imagesOutline } from 'ionicons/icons';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { fieldErrors, vehicleInputSchema } from '@/domain/schemas';
-import { VEHICLE_TYPES } from '@/domain/tasks';
+import { isRoadVehicle, VEHICLE_TYPES } from '@/domain/tasks';
+import { unitInfo } from '@/domain/units';
 import type { VehicleType } from '@/domain/types';
 import { toSquareThumbnail } from '@/lib/image';
 import { useGarageStore } from '@/stores/garage';
@@ -170,6 +180,20 @@ const form = reactive({
   road_tax_due: existing?.road_tax_due ?? '',
   photo: existing?.photo ?? null,
 });
+/** Kart y pit bike no circulan por vía pública: sin matrícula, ITV ni vencimientos. */
+const onRoad = computed(() => isRoadVehicle(form.type));
+
+/** Ejemplos en los campos, según el tipo elegido. */
+const EXAMPLES: Record<VehicleType, { name: string; make: string; model: string }> = {
+  motorcycle: { name: 'CBR600RR', make: 'Honda', model: 'CBR600RR' },
+  moped: { name: 'Vespino', make: 'Piaggio', model: 'Zip 50' },
+  car: { name: 'Corolla', make: 'Toyota', model: 'Corolla Hybrid' },
+  van: { name: 'Furgo', make: 'Renault', model: 'Kangoo' },
+  pitbike: { name: 'Pit bike', make: 'IMR', model: 'CRZ 140' },
+  kart: { name: 'Kart', make: 'Tony Kart', model: 'Racer 401' },
+};
+const examples = computed(() => EXAMPLES[form.type]);
+
 const kmText = ref(existingKm !== undefined ? String(existingKm) : '');
 const errors = ref<Record<string, string>>({});
 const saving = ref(false);
@@ -214,9 +238,10 @@ async function save() {
   const km = String(kmText.value ?? '').trim();
   const parsed = vehicleInputSchema.safeParse({
     ...form,
-    first_registration: form.first_registration || null,
-    insurance_due: form.insurance_due || null,
-    road_tax_due: form.road_tax_due || null,
+    plate: onRoad.value ? form.plate : '',
+    first_registration: (onRoad.value && form.first_registration) || null,
+    insurance_due: (onRoad.value && form.insurance_due) || null,
+    road_tax_due: (onRoad.value && form.road_tax_due) || null,
     initial_km: km === '' ? null : Number(km),
   });
   if (!parsed.success) {
@@ -224,7 +249,7 @@ async function save() {
     return;
   }
   if (existingKm !== undefined && parsed.data.initial_km !== null && parsed.data.initial_km < existingKm) {
-    errors.value = { initial_km: 'Los km no pueden bajar' };
+    errors.value = { initial_km: 'No puede bajar de la lectura actual' };
     return;
   }
   errors.value = {};
@@ -350,7 +375,7 @@ async function remove() {
 }
 @media (min-width: 992px) {
   .types {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
   .type {
     flex-direction: column;

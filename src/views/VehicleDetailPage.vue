@@ -46,7 +46,7 @@
 
         <!-- Cuadro de instrumentos: odómetro + próximo mantenimiento + testigos -->
         <div class="dash">
-          <OdometerCluster :km="km" :next="nextReminder" @update="promptOdometer" />
+          <OdometerCluster :km="km" :next="nextReminder" :unit="unit" @update="promptOdometer" />
           <StatusLights v-if="reminders.length > 0" class="lights" :reminders="reminders" />
         </div>
 
@@ -60,7 +60,7 @@
             <p v-if="reminders.length === 0" class="g-secondary">
               No hay mantenimientos programados. Configúralos en el plan.
             </p>
-            <UrgencyCard v-for="r in visibleReminders" :key="r.taskId" :reminder="r" calendar />
+            <UrgencyCard v-for="r in visibleReminders" :key="r.taskId" :reminder="r" actions />
             <ion-button
               v-if="hiddenCount > 0"
               fill="clear"
@@ -74,33 +74,68 @@
 
           <!-- Historial -->
           <section class="g-section">
-            <h3 class="g-section-title">Partes de trabajo</h3>
-            <p v-if="entries.length === 0" class="g-secondary">
+            <h3 class="g-section-title">Historial</h3>
+            <p v-if="history.length === 0" class="g-secondary">
               Aún no hay registros. Pulsa ⚡ para apuntar el primero.
             </p>
             <div v-else class="work work-head" aria-hidden="true">
               <span>Fecha</span>
-              <span>Km</span>
+              <span>{{ unit === 'km' ? 'Km' : 'Horas' }}</span>
               <span>Trabajo</span>
             </div>
-            <ion-list v-if="entries.length > 0" lines="none" class="timeline">
-              <ion-item-sliding v-for="e in entries" :key="e.id">
+            <ion-list v-if="history.length > 0" lines="none" class="timeline">
+              <template v-for="h in history" :key="h.item.id">
+              <ion-item-sliding v-if="h.kind === 'fuel'">
+                <ion-item class="timeline-item">
+                  <button
+                    type="button"
+                    class="work timeline-body"
+                    :aria-label="`Editar repostaje del ${formatDate(h.item.filled_on)}`"
+                    @click="router.push(`/fuel/${h.item.id}/edit`)"
+                  >
+                    <span class="g-mono">{{ formatNumericDate(h.item.filled_on) }}</span>
+                    <span class="g-mono">{{ h.item.odometer_km !== null ? formatNumber(h.item.odometer_km) : '—' }}</span>
+                    <span class="work-desc">
+                      <span class="work-tasks">⛽ Repostaje · <span class="g-mono">{{ formatLiters(h.item.centiliters) }}</span></span>
+                      <span v-if="h.item.cost_cents !== null || h.item.notes || !h.item.full_tank" class="work-meta">
+                        <span v-if="h.item.cost_cents !== null" class="g-mono">{{ formatMoney(h.item.cost_cents, h.item.currency) }}</span>
+                        <span v-if="!h.item.full_tank">{{ h.item.cost_cents !== null ? ' · ' : '' }}parcial</span>
+                        <span v-if="h.item.notes"> · {{ h.item.notes }}</span>
+                      </span>
+                    </span>
+                  </button>
+                  <ion-button
+                    slot="end"
+                    class="g-desktop-only delete"
+                    fill="clear"
+                    color="medium"
+                    aria-label="Borrar repostaje"
+                    @click="removeFuel(h.item.id)"
+                  >
+                    <ion-icon slot="icon-only" :icon="trashOutline" />
+                  </ion-button>
+                </ion-item>
+                <ion-item-options side="end">
+                  <ion-item-option color="danger" @click="removeFuel(h.item.id)">Borrar</ion-item-option>
+                </ion-item-options>
+              </ion-item-sliding>
+              <ion-item-sliding v-else>
                 <ion-item class="timeline-item">
                   <!-- Tocar el registro lo abre para corregirlo. -->
                   <button
                     type="button"
                     class="work timeline-body"
-                    :aria-label="`Editar registro del ${formatDate(e.done_on)}`"
-                    @click="router.push(`/entries/${e.id}/edit`)"
+                    :aria-label="`Editar registro del ${formatDate(h.item.done_on)}`"
+                    @click="router.push(`/entries/${h.item.id}/edit`)"
                   >
-                    <span class="g-mono">{{ formatNumericDate(e.done_on) }}</span>
-                    <span class="g-mono">{{ e.odometer_km !== null ? formatNumber(e.odometer_km) : '—' }}</span>
+                    <span class="g-mono">{{ formatNumericDate(h.item.done_on) }}</span>
+                    <span class="g-mono">{{ h.item.odometer_km !== null ? formatNumber(h.item.odometer_km) : '—' }}</span>
                     <span class="work-desc">
-                      <span class="work-tasks">{{ e.items.map((i) => getTask(i.task_id).label).join(', ') }}</span>
-                      <span v-if="e.cost_cents !== null || e.notes" class="work-meta">
-                        <span v-if="e.cost_cents !== null" class="g-mono">{{ formatMoney(e.cost_cents, e.currency) }}</span>
-                        <span v-if="e.cost_cents !== null && e.notes"> · </span>
-                        <span v-if="e.notes">{{ e.notes }}</span>
+                      <span class="work-tasks">{{ h.item.items.map((i) => getTask(i.task_id).label).join(', ') }}</span>
+                      <span v-if="h.item.cost_cents !== null || h.item.notes" class="work-meta">
+                        <span v-if="h.item.cost_cents !== null" class="g-mono">{{ formatMoney(h.item.cost_cents, h.item.currency) }}</span>
+                        <span v-if="h.item.cost_cents !== null && h.item.notes"> · </span>
+                        <span v-if="h.item.notes">{{ h.item.notes }}</span>
                       </span>
                     </span>
                   </button>
@@ -111,15 +146,16 @@
                     fill="clear"
                     color="medium"
                     aria-label="Borrar registro"
-                    @click="removeEntry(e.id)"
+                    @click="removeEntry(h.item.id)"
                   >
                     <ion-icon slot="icon-only" :icon="trashOutline" />
                   </ion-button>
                 </ion-item>
                 <ion-item-options side="end">
-                  <ion-item-option color="danger" @click="removeEntry(e.id)">Borrar</ion-item-option>
+                  <ion-item-option color="danger" @click="removeEntry(h.item.id)">Borrar</ion-item-option>
                 </ion-item-options>
               </ion-item-sliding>
+              </template>
             </ion-list>
           </section>
         </div>
@@ -163,7 +199,8 @@ import StatusLights from '@/components/StatusLights.vue';
 import UrgencyCard from '@/components/UrgencyCard.vue';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { useDesktop } from '@/composables/useDesktop';
-import { formatDate, formatKm, formatMoney, formatNumber, formatNumericDate } from '@/domain/format';
+import { formatDate, formatLiters, formatMoney, formatNumber, formatNumericDate, formatUsage } from '@/domain/format';
+import { UNITS, usageUnit } from '@/domain/units';
 import { getTask, vehicleTypeLabel } from '@/domain/tasks';
 import { useGarageStore } from '@/stores/garage';
 
@@ -174,7 +211,16 @@ const router = useIonRouter();
 const isDesktop = useDesktop();
 const vehicle = computed(() => store.vehicleById.get(props.id) ?? null);
 const km = computed(() => store.currentKm.get(props.id) ?? null);
+const unit = computed(() => usageUnit(vehicle.value?.type ?? 'motorcycle'));
 const entries = computed(() => store.entriesByVehicle.get(props.id) ?? []);
+const fuelLogs = computed(() => store.fuelLogs.filter((f) => f.vehicle_id === props.id));
+/** Partes de trabajo y repostajes en una sola línea de tiempo, lo último arriba. */
+const history = computed(() =>
+  [
+    ...entries.value.map((item) => ({ kind: 'entry' as const, item, on: item.done_on, km: item.odometer_km })),
+    ...fuelLogs.value.map((item) => ({ kind: 'fuel' as const, item, on: item.filled_on, km: item.odometer_km })),
+  ].sort((a, b) => b.on.localeCompare(a.on) || (b.km ?? 0) - (a.km ?? 0)),
+);
 const reminders = computed(() => store.remindersByVehicle.get(props.id) ?? []);
 
 const showAll = ref(false);
@@ -183,11 +229,13 @@ const visibleReminders = computed(() =>
 );
 const hiddenCount = computed(() => reminders.value.length - visibleReminders.value.length);
 /** El más urgente con datos: lo que marca el arco del cuadro. */
-const nextReminder = computed(() => reminders.value.find((r) => r.status !== 'unknown') ?? null);
+const nextReminder = computed(
+  () => reminders.value.find((r) => r.status !== 'unknown' && r.status !== 'snoozed') ?? null,
+);
 
 async function promptOdometer() {
   const alert = await alertController.create({
-    header: 'Kilómetros actuales',
+    header: UNITS[unit.value].current,
     inputs: [
       {
         name: 'km',
@@ -196,7 +244,7 @@ async function promptOdometer() {
         attributes: { inputmode: 'numeric', min: 0 },
       },
     ],
-    message: '¿Te equivocaste antes? Corrígelo en el historial de km.',
+    message: `¿Te equivocaste antes? Corrígelo en el historial de ${unit.value === 'km' ? 'km' : 'horas'}.`,
     buttons: [
       { text: 'Historial', role: 'history' },
       { text: 'Cancelar', role: 'cancel' },
@@ -213,20 +261,35 @@ async function promptOdometer() {
 
   const value = Number(data?.values.km);
   if (!Number.isInteger(value) || value < 0) {
-    await toast('Introduce un número de km válido', 'danger');
+    await toast('Introduce un número entero válido', 'danger');
     return;
   }
   if (km.value !== null && value < km.value) {
-    await toast(`Los km no pueden bajar de ${formatKm(km.value)}. Si es un error, corrígelo en el historial de km.`, 'danger');
+    await toast(
+      `No puede bajar de ${formatUsage(km.value, unit.value)}. Si es un error, corrígelo en el historial.`,
+      'danger',
+    );
     return;
   }
   await store.addReading(props.id, value);
 }
 
+async function removeFuel(fuelId: string) {
+  const alert = await alertController.create({
+    header: '¿Borrar repostaje?',
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      { text: 'Borrar', role: 'destructive' },
+    ],
+  });
+  await alert.present();
+  if ((await alert.onDidDismiss()).role === 'destructive') await store.deleteFuel(fuelId);
+}
+
 async function removeEntry(entryId: string) {
   const alert = await alertController.create({
     header: '¿Borrar registro?',
-    message: 'También se quitarán los km que apuntaste en él.',
+    message: `También se quitarán ${UNITS[unit.value].noun} que apuntaste en él.`,
     buttons: [
       { text: 'Cancelar', role: 'cancel' },
       { text: 'Borrar', role: 'destructive' },

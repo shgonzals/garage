@@ -1,7 +1,7 @@
 {
   "name": "garage",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "App multiplataforma para llevar el mantenimiento de motos y vehículos personales.",
   "scripts": {

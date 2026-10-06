@@ -12,9 +12,9 @@
     <div class="km">
       <template v-if="km !== null">
         {{ formatNumber(km) }}
-        <span>km</span>
+        <span>{{ unit }}</span>
       </template>
-      <span v-else>— km</span>
+      <span v-else>— {{ unit }}</span>
     </div>
   </button>
 </template>
@@ -24,10 +24,12 @@ import { computed } from 'vue';
 import { formatNumber, summaryText } from '@/domain/format';
 import type { VehicleSummary } from '@/domain/reminders';
 import type { Vehicle } from '@/domain/types';
+import { usageUnit } from '@/domain/units';
 import { STATUS_TONE } from './status';
 import VehicleAvatar from './VehicleAvatar.vue';
 
 const props = defineProps<{ vehicle: Vehicle; km: number | null; summary: VehicleSummary | undefined }>();
+const unit = computed(() => usageUnit(props.vehicle.type));
 defineEmits<{ open: [] }>();
 
 const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);

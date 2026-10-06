@@ -7,28 +7,41 @@
         <span v-if="vehicleName" class="vehicle">· {{ vehicleName }}</span>
       </h4>
       <p class="headline">{{ reminderHeadline(reminder) }}</p>
-      <p v-if="estimate" class="estimate">≈ {{ formatDate(estimate) }} a tu ritmo ({{ formatNumber(perDay) }} km/día)</p>
+      <p v-if="estimate" class="estimate">≈ {{ formatDate(estimate) }} a tu ritmo ({{ formatRate(perDay, reminder.unit) }})</p>
       <p v-if="lastLine" class="last">{{ lastLine }}</p>
     </div>
-    <!-- Solo donde la tarjeta no está dentro de otro botón (ficha del vehículo). -->
-    <button
-      v-if="calendar && eventDate"
-      type="button"
-      class="calendar"
-      :aria-label="`Añadir ${task.label} a Google Calendar`"
-      title="Añadir a Google Calendar"
-      @click.stop="addToCalendar"
-    >
-      <ion-icon :icon="calendarOutline" aria-hidden="true" />
-    </button>
+    <!-- Acciones: solo donde la tarjeta no está dentro de otro botón (ficha del vehículo). -->
+    <div v-if="actions && (canSnooze || eventDate)" class="actions">
+      <button
+        v-if="canSnooze"
+        type="button"
+        class="action"
+        :aria-label="reminder.status === 'snoozed' ? `Quitar aplazamiento de ${task.label}` : `Posponer ${task.label}`"
+        :title="reminder.status === 'snoozed' ? 'Quitar aplazamiento' : 'Posponer'"
+        @click.stop="openSnooze"
+      >
+        <ion-icon :icon="alarmOutline" aria-hidden="true" />
+      </button>
+      <button
+        v-if="eventDate"
+        type="button"
+        class="action"
+        :aria-label="`Añadir ${task.label} a Google Calendar`"
+        title="Añadir a Google Calendar"
+        @click.stop="addToCalendar"
+      >
+        <ion-icon :icon="calendarOutline" aria-hidden="true" />
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { IonIcon } from '@ionic/vue';
-import { calendarOutline } from 'ionicons/icons';
-import { formatDate, formatNumber, reminderGauge, reminderHeadline, reminderLastLine } from '@/domain/format';
+import { actionSheetController, IonIcon, toastController } from '@ionic/vue';
+import { alarmOutline, calendarOutline } from 'ionicons/icons';
+import { formatDate, formatRate, reminderGauge, reminderHeadline, reminderLastLine, snoozeUntilText } from '@/domain/format';
+import { snoozeOptions } from '@/domain/snooze';
 import type { Reminder } from '@/domain/reminders';
 import { getTask } from '@/domain/tasks';
 import { googleCalendarUrl } from '@/domain/calendar';
@@ -37,8 +50,8 @@ import { useGarageStore } from '@/stores/garage';
 import RingGauge from './RingGauge.vue';
 import { STATUS_TONE } from './status';
 
-/** `calendar`: muestra el botón para crear el evento en Google Calendar. */
-const props = defineProps<{ reminder: Reminder; vehicleName?: string; calendar?: boolean }>();
+/** `actions`: botones de posponer y de Google Calendar (solo donde la tarjeta no es ya un botón). */
+const props = defineProps<{ reminder: Reminder; vehicleName?: string; actions?: boolean }>();
 
 const task = computed(() => getTask(props.reminder.taskId));
 const tone = computed(() => STATUS_TONE[props.reminder.status]);
@@ -47,14 +60,54 @@ const lastLine = computed(() => reminderLastLine(props.reminder));
 
 const store = useGarageStore();
 const estimate = computed(() => store.kmEstimate(props.reminder));
-const perDay = computed(() => Math.round(store.kmRates.get(props.reminder.vehicleId)?.perDay ?? 0));
+const perDay = computed(() => store.kmRates.get(props.reminder.vehicleId)?.perDay ?? 0);
 
 /** Día del evento: la estimación a tu ritmo si adelanta a la fecha límite; si ya pasó, no hay nada que agendar. */
 const eventDate = computed(() => {
-  if (props.reminder.status === 'unknown') return null;
+  if (props.reminder.status === 'unknown' || props.reminder.status === 'snoozed') return null;
   const date = estimate.value ?? props.reminder.dueDate;
   return date && date >= store.today ? date : null;
 });
+
+/** Se puede posponer lo vencido o próximo, y quitar el aplazamiento de lo pospuesto. */
+const canSnooze = computed(() => ['overdue', 'soon', 'snoozed'].includes(props.reminder.status));
+
+async function openSnooze() {
+  const r = props.reminder;
+  if (r.status === 'snoozed') {
+    const sheet = await actionSheetController.create({
+      header: `${task.value.label}: pospuesto ${r.snoozedUntil ? snoozeUntilText(r.snoozedUntil, r.unit) : ''}`,
+      buttons: [
+        { text: 'Quitar aplazamiento', handler: () => void store.unsnooze(r.vehicleId, r.taskId) },
+        { text: 'Cancelar', role: 'cancel' },
+      ],
+    });
+    await sheet.present();
+    return;
+  }
+  const km = store.currentKm.get(r.vehicleId) ?? null;
+  const sheet = await actionSheetController.create({
+    header: `Recordarme ${task.value.label.toLowerCase()} dentro de…`,
+    subHeader: 'Mientras tanto no contará como pendiente ni te avisará.',
+    buttons: [
+      ...snoozeOptions(r, km, store.today).map((o) => ({
+        text: o.label,
+        handler: () => {
+          void store.snooze(r.vehicleId, r.taskId, o.until).then(async () => {
+            const t = await toastController.create({
+              message: `Pospuesto ${snoozeUntilText(o.until, r.unit)}`,
+              duration: 1800,
+              position: 'top',
+            });
+            await t.present();
+          });
+        },
+      })),
+      { text: 'Cancelar', role: 'cancel' },
+    ],
+  });
+  await sheet.present();
+}
 
 function addToCalendar() {
   if (!eventDate.value) return;
@@ -123,14 +176,18 @@ p {
   font-weight: 500;
   color: var(--g-accent-text);
 }
-.calendar {
+.actions {
   flex: none;
   align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  margin: -6px -6px -6px auto;
+}
+.action {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
-  margin: -4px -6px 0 auto;
   border: none;
   border-radius: var(--g-radius-md);
   background: none;
@@ -138,7 +195,7 @@ p {
   font-size: 20px;
   cursor: pointer;
 }
-.calendar:hover {
+.action:hover {
   background: var(--g-surface-secondary);
   color: var(--g-accent-text);
 }

@@ -1,6 +1,8 @@
 import { v7 as uuidv7 } from 'uuid';
 import { BACKUP_FORMAT, BACKUP_TABLES, backupColumns, type Backup, type BackupTable } from '@/domain/backup';
 import { nowIso } from '@/domain/dates';
+import { litersToCentiliters, type FuelData, type FuelLog } from '@/domain/fuel';
+import type { Snooze, SnoozeUntil } from '@/domain/snooze';
 import { eurosToCents, type CustomTaskInput, type QuickLogData, type ScheduleInput, type VehicleData } from '@/domain/schemas';
 import { defaultSchedulesFor } from '@/domain/tasks';
 import type {
@@ -124,6 +126,7 @@ export class GarageRepository {
     source: OdometerReading['source'],
     ts: string,
     entryId: string | null = null,
+    fuelId: string | null = null,
   ): SqlStatement {
     return insert('odometer_readings', {
       id: this.newId(),
@@ -132,6 +135,7 @@ export class GarageRepository {
       read_on: readOn,
       source,
       entry_id: entryId,
+      fuel_id: fuelId,
       created_at: ts,
       updated_at: ts,
       deleted_at: null,
@@ -159,11 +163,11 @@ export class GarageRepository {
     );
   }
 
-  /** Borra una lectura manual. Las de un registro se corrigen editando o borrando el registro. */
+  /** Borra una lectura manual. Las de un registro o repostaje se corrigen editándolos o borrándolos. */
   async deleteReading(id: string): Promise<void> {
     const ts = this.now();
     await this.db.run(
-      'UPDATE odometer_readings SET deleted_at = ?, updated_at = ? WHERE id = ? AND entry_id IS NULL',
+      'UPDATE odometer_readings SET deleted_at = ?, updated_at = ? WHERE id = ? AND entry_id IS NULL AND fuel_id IS NULL',
       [ts, ts, id],
     );
   }
@@ -316,6 +320,101 @@ export class GarageRepository {
          deleted_at = NULL`,
       params: [vehicleId, taskId, input.interval_km, input.interval_days, input.enabled ? 1 : 0, ts],
     };
+  }
+
+  // ── Repostajes ─────────────────────────────────────────────
+
+  listFuelLogs(): Promise<FuelLog[]> {
+    return this.db.query<FuelLog>('SELECT * FROM fuel_logs WHERE deleted_at IS NULL ORDER BY filled_on DESC, odometer_km DESC');
+  }
+
+  private fuelRow(data: FuelData) {
+    return {
+      vehicle_id: data.vehicle_id,
+      filled_on: data.filled_on,
+      odometer_km: data.odometer_km,
+      centiliters: litersToCentiliters(data.liters),
+      cost_cents: data.cost !== null ? eurosToCents(data.cost) : null,
+      currency: 'EUR',
+      full_tank: data.full_tank ? 1 : 0,
+      notes: data.notes,
+    };
+  }
+
+  private softDeleteFuelReadings(fuelId: string, ts: string): SqlStatement {
+    return {
+      sql: 'UPDATE odometer_readings SET deleted_at = ?, updated_at = ? WHERE fuel_id = ? AND deleted_at IS NULL',
+      params: [ts, ts, fuelId],
+    };
+  }
+
+  /** Repostaje + su lectura de km, en una transacción. */
+  async createFuel(data: FuelData): Promise<string> {
+    const ts = this.now();
+    const id = this.newId();
+    const statements: SqlStatement[] = [
+      insert('fuel_logs', { id, ...this.fuelRow(data), created_at: ts, updated_at: ts, deleted_at: null }),
+    ];
+    if (data.odometer_km !== null) {
+      statements.push(this.readingInsert(data.vehicle_id, data.odometer_km, data.filled_on, 'manual', ts, null, id));
+    }
+    await this.db.batch(statements);
+    return id;
+  }
+
+  async updateFuel(id: string, data: FuelData): Promise<void> {
+    const ts = this.now();
+    const row = this.fuelRow(data);
+    const cols = Object.keys(row);
+    const statements: SqlStatement[] = [
+      {
+        sql: `UPDATE fuel_logs SET ${cols.map((c) => `${c} = ?`).join(', ')}, updated_at = ? WHERE id = ? AND deleted_at IS NULL`,
+        params: [...(Object.values(row) as SqlValue[]), ts, id],
+      },
+      this.softDeleteFuelReadings(id, ts),
+    ];
+    if (data.odometer_km !== null) {
+      statements.push(this.readingInsert(data.vehicle_id, data.odometer_km, data.filled_on, 'manual', ts, null, id));
+    }
+    await this.db.batch(statements);
+  }
+
+  async deleteFuel(id: string): Promise<void> {
+    const ts = this.now();
+    await this.db.batch([
+      { sql: 'UPDATE fuel_logs SET deleted_at = ?, updated_at = ? WHERE id = ?', params: [ts, ts, id] },
+      this.softDeleteFuelReadings(id, ts),
+    ]);
+  }
+
+  // ── Aplazamientos ──────────────────────────────────────────
+
+  listSnoozes(): Promise<Snooze[]> {
+    return this.db.query<Snooze>('SELECT * FROM snoozes WHERE deleted_at IS NULL');
+  }
+
+  /** Aplaza (o cambia el aplazamiento de) un recordatorio. `created_at` marca desde cuándo cuenta. */
+  async snooze(vehicleId: string, taskId: TaskId, until: SnoozeUntil): Promise<void> {
+    const ts = this.now();
+    await this.db.run(
+      `INSERT INTO snoozes (vehicle_id, task_id, until_date, until_km, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, NULL)
+       ON CONFLICT (vehicle_id, task_id) DO UPDATE SET
+         until_date = excluded.until_date,
+         until_km = excluded.until_km,
+         created_at = excluded.created_at,
+         updated_at = excluded.updated_at,
+         deleted_at = NULL`,
+      [vehicleId, taskId, until.date, until.km, ts, ts],
+    );
+  }
+
+  async unsnooze(vehicleId: string, taskId: TaskId): Promise<void> {
+    const ts = this.now();
+    await this.db.run(
+      'UPDATE snoozes SET deleted_at = ?, updated_at = ? WHERE vehicle_id = ? AND task_id = ? AND deleted_at IS NULL',
+      [ts, ts, vehicleId, taskId],
+    );
   }
 
   // ── Tareas personalizadas ──────────────────────────────────

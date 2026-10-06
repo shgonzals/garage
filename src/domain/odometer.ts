@@ -12,7 +12,7 @@ export const MAX_KM_PER_DAY = 1500;
  * - Saltan más de `MAX_KM_PER_DAY` por día respecto a la lectura anterior. Cubre el caso
  *   más común, que la lectura errónea sea justo la última y nada posterior la contradiga.
  */
-export function suspiciousReadings(readings: readonly Reading[]): Set<string> {
+export function suspiciousReadings(readings: readonly Reading[], maxPerDay = MAX_KM_PER_DAY): Set<string> {
   const out = new Set<string>();
   const byDateDesc = [...readings].sort((a, b) => b.read_on.localeCompare(a.read_on));
 
@@ -39,7 +39,7 @@ export function suspiciousReadings(readings: readonly Reading[]): Set<string> {
     }
     if (!prev) continue;
     const days = Math.max(differenceInCalendarDays(parseISO(r.read_on), parseISO(prev.read_on)), 1);
-    if ((r.km - prev.km) / days > MAX_KM_PER_DAY) out.add(r.id);
+    if ((r.km - prev.km) / days > maxPerDay) out.add(r.id);
   }
   return out;
 }

@@ -58,6 +58,7 @@ const odometerReading = z.object({
   read_on: isoDate,
   source: z.enum(['manual', 'entry']),
   entry_id: id.nullable().default(null), // migración 3
+  fuel_id: id.nullable().default(null), // migración 8
 });
 
 const entryItem = z.object({
@@ -73,6 +74,28 @@ const schedule = z.object({
   interval_km: z.number().int().positive().nullable(),
   interval_days: z.number().int().positive().nullable(),
   enabled: z.union([z.literal(0), z.literal(1)]),
+  updated_at: timestamp,
+  deleted_at: timestamp.nullable(),
+});
+
+const fuelLog = z.object({
+  ...row,
+  vehicle_id: id,
+  filled_on: isoDate,
+  odometer_km: z.number().int().min(0).nullable(),
+  centiliters: z.number().int().positive(),
+  cost_cents: z.number().int().min(0).nullable(),
+  currency: z.string().length(3),
+  full_tank: z.union([z.literal(0), z.literal(1)]),
+  notes: text,
+});
+
+const snooze = z.object({
+  vehicle_id: id,
+  task_id: taskIdSchema,
+  until_date: isoDate.nullable(),
+  until_km: z.number().int().min(0).nullable(),
+  created_at: timestamp,
   updated_at: timestamp,
   deleted_at: timestamp.nullable(),
 });
@@ -93,10 +116,12 @@ export const BACKUP_TABLES = {
   vehicles: { schema: vehicle, key: ['id'] },
   custom_tasks: { schema: customTask, key: ['id'] }, // migración 4
   entries: { schema: entry, key: ['id'] },
+  fuel_logs: { schema: fuelLog, key: ['id'] }, // migración 8
   odometer_readings: { schema: odometerReading, key: ['id'] },
   entry_items: { schema: entryItem, key: ['id'] },
   schedules: { schema: schedule, key: ['vehicle_id', 'task_id'] },
   documents: { schema: document, key: ['id'] },
+  snoozes: { schema: snooze, key: ['vehicle_id', 'task_id'] }, // migración 7
 } as const;
 
 export type BackupTable = keyof typeof BACKUP_TABLES;
@@ -114,6 +139,8 @@ export const backupSchema = z.object({
     entry_items: z.array(entryItem),
     schedules: z.array(schedule),
     documents: z.array(document).default([]),
+    snoozes: z.array(snooze).default([]),
+    fuel_logs: z.array(fuelLog).default([]),
   }),
 });
 export type Backup = z.output<typeof backupSchema>;

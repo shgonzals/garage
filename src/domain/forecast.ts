@@ -24,8 +24,8 @@ export interface KmRate {
  * dentro del último año y sin las lecturas que parecen errores al teclear.
  * `null` si no hay datos suficientes (menos de dos lecturas separadas por 14 días).
  */
-export function estimateKmRate(readings: readonly Reading[]): KmRate | null {
-  const bad = suspiciousReadings(readings);
+export function estimateKmRate(readings: readonly Reading[], maxPerDay?: number): KmRate | null {
+  const bad = suspiciousReadings(readings, maxPerDay);
   const valid = readings
     .filter((r) => !bad.has(r.id))
     .sort((a, b) => a.read_on.localeCompare(b.read_on) || a.km - b.km);
@@ -54,7 +54,9 @@ export function dateForKm(rate: KmRate, targetKm: number, today: IsoDate): IsoDa
  * fecha límite (si la fecha llega antes, ya manda la fecha y no hace falta estimar nada).
  */
 export function estimatedKmDueDate(r: Reminder, rate: KmRate | null, today: IsoDate): IsoDate | null {
-  if (!rate || r.dueKm === null || r.status === 'overdue' || r.status === 'unknown') return null;
+  if (!rate || r.dueKm === null || r.status === 'overdue' || r.status === 'unknown' || r.status === 'snoozed') {
+    return null;
+  }
   const date = dateForKm(rate, r.dueKm, today);
   return r.dueDate !== null && r.dueDate <= date ? null : date;
 }

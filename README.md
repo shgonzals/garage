@@ -89,7 +89,8 @@ Detalle de cada versión en [CHANGELOG.md](CHANGELOG.md). La versión vive en `p
 - [x] **0.1 MVP local:** vehículos, odómetro, registros, motor de urgencias + ITV, timeline, registro rápido, plan de mantenimiento, modo oscuro, tests
 - [x] **0.2:** estilo Taller + Cuadro con 5 temas, escritorio, foto del vehículo, corregir registros y km, exportar/importar, avisos locales y ritmo de km, tareas personalizadas, app Android con logo
 - [x] **0.3:** seguro e impuesto como vencimientos, Google Calendar, tests de interfaz
-- [ ] **0.4:** adjuntos (tickets y facturas; tabla `documents` ya creada), posponer avisos
-- [ ] **0.5:** Supabase (auth con Google, RLS, sync, borrar cuenta)
-- [ ] **0.6:** repostajes, consumo, coste por mes y km
-- [ ] **1.0:** beta cerrada, App Store + Google Play
+- [x] **0.4:** posponer avisos; repostajes, consumo y estadísticas de gasto; más tareas propias de moto, con un
+  plan de mantenimiento y un registro rápido más manejables; kart y pitbike (horas de motor)
+- [ ] **0.5:** widget de Android, traducción al inglés
+- [ ] **1.0:** prueba cerrada y publicación en Google Play (1,99 €)
+- [ ] **Más adelante:** cuenta con Google y sincronización entre dispositivos, iOS

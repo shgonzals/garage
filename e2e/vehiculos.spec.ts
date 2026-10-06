@@ -73,3 +73,33 @@ test('Google Calendar: crea el evento con la fecha del vencimiento', async ({ pa
   const day = format(addDays(new Date(), 20), 'yyyyMMdd');
   expect(url.searchParams.get('dates')).toMatch(new RegExp(`^${day}/`));
 });
+
+test('posponer un aviso vencido y quitar el aplazamiento', async ({ page }) => {
+  await loadDemoData(page);
+  await openApp(page);
+  await page.locator('.vehicle-card').filter({ hasText: 'CBR600RR', visible: true }).click();
+  const lights = page.locator('.lights').filter({ visible: true });
+  await expect(lights).toContainText('3 vencidos');
+
+  const card = page.locator('.urgency').filter({ hasText: 'Tensión de cadena', visible: true });
+  await card.getByRole('button', { name: /Posponer/ }).click();
+  await page.locator('ion-action-sheet button', { hasText: '1 semana' }).click();
+
+  await expect(card).toContainText('Pospuesto hasta el');
+  await expect(lights).toContainText('2 vencidos');
+
+  // En Recordatorios aparece en su propia sección.
+  await openApp(page, '/tabs/reminders');
+  await expect(visibleText(page, /Pospuestos · 1/)).toBeVisible();
+
+  // Quitar el aplazamiento: vuelve a contar como vencido.
+  await openApp(page);
+  await page.locator('.vehicle-card').filter({ hasText: 'CBR600RR', visible: true }).click();
+  await page
+    .locator('.urgency')
+    .filter({ hasText: 'Tensión de cadena', visible: true })
+    .getByRole('button', { name: /Quitar aplazamiento/ })
+    .click();
+  await page.locator('ion-action-sheet button', { hasText: 'Quitar aplazamiento' }).click();
+  await expect(page.locator('.lights').filter({ visible: true })).toContainText('3 vencidos');
+});
