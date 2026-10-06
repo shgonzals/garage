@@ -3,6 +3,7 @@ import { onScopeDispose, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { widgetPayload } from '@/domain/widget';
 import { i18n } from '@/i18n';
+import { isPro } from '@/lib/pro';
 import { updateWidget, widgetRoute, widgetSupported } from '@/lib/widget';
 import { useGarageStore } from '@/stores/garage';
 
@@ -17,11 +18,11 @@ export function useWidgetSync() {
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   watch(
-    [() => store.allReminders, () => store.vehicles, i18n.global.locale],
+    [() => store.allReminders, () => store.vehicles, i18n.global.locale, isPro],
     () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        updateWidget(widgetPayload(store.vehicles, store.allReminders)).catch((err) =>
+        updateWidget(widgetPayload(store.vehicles, store.allReminders, isPro.value)).catch((err) =>
           console.error('No se pudo actualizar el widget', err),
         );
       }, 500);

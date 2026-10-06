@@ -14,6 +14,17 @@
       </ion-header>
 
       <section class="g-section">
+        <button type="button" class="g-card pro-card" @click="router.push('/pro')">
+          <AppLogo :size="40" />
+          <span class="pro-text">
+            <strong>Garage Pro</strong>
+            <span class="g-secondary">{{ isPro ? $t('settings.proActive') : $t('settings.proPitch') }}</span>
+          </span>
+          <ion-icon :icon="isPro ? checkmarkCircle : chevronForward" :class="{ 'pro-ok': isPro }" aria-hidden="true" />
+        </button>
+      </section>
+
+      <section class="g-section">
         <h3 class="g-section-title">{{ $t('settings.language') }}</h3>
         <ion-segment v-model="languagePreference" :aria-label="$t('settings.language')">
           <ion-segment-button value="system">
@@ -34,14 +45,17 @@
             type="button"
             role="radio"
             class="palette"
-            :class="{ active: palettePreference === p.id }"
-            :aria-checked="palettePreference === p.id"
-            @click="palettePreference = p.id"
+            :class="{ active: activePalette === p.id, locked: isLocked(p.id) }"
+            :aria-checked="activePalette === p.id"
+            @click="choosePalette(p.id)"
           >
             <span class="swatch" :style="{ background: p.swatch[0] }" aria-hidden="true">
               <span class="swatch-accent" :style="{ background: p.swatch[1] }" />
             </span>
-            {{ $t(`settings.palettes.${p.id}`) }}
+            <span>
+              {{ $t(`settings.palettes.${p.id}`) }}
+              <span v-if="isLocked(p.id)" class="lock" role="img" :aria-label="$t('settings.proOnly')">🔒</span>
+            </span>
           </button>
         </div>
       </section>
@@ -131,7 +145,14 @@
         </div>
       </section>
 
-      <p class="g-muted about">Garage v{{ version }}</p>
+      <footer class="about g-muted">
+        <span>Garage v{{ version }}</span>
+        <span class="studio">
+          {{ $t('settings.madeBy') }}
+          <StudioMark :size="14" />
+          <strong>Orbita Labs</strong>
+        </span>
+      </footer>
     </ion-content>
   </ion-page>
 </template>
@@ -166,7 +187,21 @@ import {
 } from '@/lib/notifications';
 import { useGarageStore } from '@/stores/garage';
 import { languagePreference, LANGUAGES, t } from '@/i18n';
-import { palettePreference, PALETTES, themePreference } from '@/theme/theme';
+import { FREE_PALETTE, isPro } from '@/lib/pro';
+import AppLogo from '@/components/AppLogo.vue';
+import StudioMark from '@/components/StudioMark.vue';
+import { checkmarkCircle, chevronForward } from 'ionicons/icons';
+import { useIonRouter, IonIcon } from '@ionic/vue';
+import { palettePreference, PALETTES, themePreference, type PaletteId } from '@/theme/theme';
+
+const router = useIonRouter();
+const isLocked = (id: PaletteId) => !isPro.value && id !== FREE_PALETTE;
+/** El tema que se ve: sin Pro, siempre Taller (aunque se recuerde el elegido). */
+const activePalette = computed(() => (isPro.value ? palettePreference.value : FREE_PALETTE));
+function choosePalette(id: PaletteId) {
+  if (isLocked(id)) router.push('/pro?from=themes');
+  else palettePreference.value = id;
+}
 
 const version = __APP_VERSION__;
 const store = useGarageStore();
@@ -451,8 +486,57 @@ async function seed() {
   margin-top: 8px;
 }
 .about {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   margin-top: 32px;
+}
+.studio {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.studio strong {
+  font-weight: 600;
+  color: var(--g-text-secondary);
+}
+.pro-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pro-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+.pro-text strong {
+  font-size: 16px;
+}
+.pro-card ion-icon {
+  font-size: 22px;
+  color: var(--g-text-muted);
+}
+.pro-card ion-icon.pro-ok {
+  color: var(--ion-color-success);
+}
+.palette {
+  position: relative;
+}
+.palette.locked {
+  opacity: 0.75;
+}
+.lock {
+  font-size: 12px;
 }
 </style>

@@ -49,14 +49,19 @@ public class GarageWidgetProvider extends AppWidgetProvider {
 
     static RemoteViews build(Context context) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_garage);
-        views.setOnClickPendingIntent(R.id.widget_root, open(context, "/tabs/reminders", 0));
-        views.setOnClickPendingIntent(R.id.quick_log, open(context, "/log", 1));
-
         JSONObject data = read(context);
         JSONArray items = data != null ? data.optJSONArray("items") : null;
         int count = items != null ? Math.min(items.length(), ROWS.length) : 0;
 
-        if (data != null) views.setTextViewText(R.id.quick_log, data.optString("quickLog"));
+        // Fuera de las filas: recordatorios (o la pantalla de Garage Pro si el widget está bloqueado).
+        String rootRoute = data != null ? data.optString("open", "/tabs/reminders") : "/tabs/reminders";
+        views.setOnClickPendingIntent(R.id.widget_root, open(context, rootRoute, 0));
+        views.setOnClickPendingIntent(R.id.quick_log, open(context, "/log", 1));
+
+        // Sin texto, el botón de registro rápido se oculta (widget bloqueado).
+        String quickLog = data != null ? data.optString("quickLog") : null;
+        if (quickLog != null) views.setTextViewText(R.id.quick_log, quickLog);
+        views.setViewVisibility(R.id.quick_log, quickLog != null && quickLog.isEmpty() ? View.GONE : View.VISIBLE);
         String empty = data != null ? data.optString("empty") : context.getString(R.string.widget_open_app);
         views.setTextViewText(R.id.empty, empty);
         views.setViewVisibility(R.id.empty, count == 0 ? View.VISIBLE : View.GONE);

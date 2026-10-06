@@ -81,6 +81,24 @@ const lights = computed(() => {
 .success .lamp {
   background: var(--g-success);
 }
+/* Móviles estrechos (360 px): menos aire para que quepa "3 vencidos". */
+@media (max-width: 400px) {
+  .lights {
+    gap: 6px;
+  }
+  .light {
+    gap: 6px;
+    padding: 0 7px;
+  }
+  .lamp {
+    width: 8px;
+    height: 8px;
+  }
+  .text {
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+}
 /* Testigo apagado: sin color ni brillo. */
 .light.off {
   background: var(--g-surface);

@@ -33,7 +33,10 @@ npx cap open android      # y ▶ en Android Studio (móvil por USB o emulador)
 ```
 
 Para generar un APK instalable de la versión actual: `npm run apk` → `releases/garage-<versión>-debug.apk`
-(de depuración: para tu móvil o para probadores; Google Play necesitará uno de publicación firmado).
+(de depuración: para tu móvil o para probadores).
+
+Para Google Play: `npm run aab` → `releases/garage-<versión>.aab`, firmado con la clave de subida (ver
+[store/PUBLICAR.md](store/PUBLICAR.md)). Las capturas de la ficha se regeneran con `npm run store:shots`.
 
 Desde terminal: `npx cap run android` (compila, instala y abre en el móvil o emulador que elijas), o
 `cd android && ./gradlew assembleDebug` para generar `android/app/build/outputs/apk/debug/app-debug.apk`. Con un APK de depuración,
@@ -92,5 +95,6 @@ Detalle de cada versión en [CHANGELOG.md](CHANGELOG.md). La versión vive en `p
 - [x] **0.4:** posponer avisos; repostajes, consumo y estadísticas de gasto; más tareas propias de moto, con un
   plan de mantenimiento y un registro rápido más manejables; kart y pitbike (horas de motor)
 - [x] **0.5:** widget de Android, traducción al inglés
-- [ ] **1.0:** prueba cerrada y publicación en Google Play (1,99 €)
+- [ ] **1.0:** Garage Pro (pago único de 1,99 €), AAB firmado, privacidad y ficha listos; falta la prueba cerrada
+  y la publicación en Google Play (pasos en [store/PUBLICAR.md](store/PUBLICAR.md))
 - [ ] **Más adelante:** cuenta con Google y sincronización entre dispositivos, iOS

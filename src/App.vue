@@ -13,8 +13,15 @@ import { IonApp, IonRouterOutlet, IonSplitPane } from '@ionic/vue';
 import SideMenu from '@/components/SideMenu.vue';
 import { useAlertSync } from '@/composables/useAlertSync';
 import { useWidgetSync } from '@/composables/useWidgetSync';
+import { App as CapApp } from '@capacitor/app';
+import { billingSupported, refreshPro } from '@/lib/pro';
 import { sidebarCollapsed } from '@/composables/useSidebar';
 
 useAlertSync();
 useWidgetSync();
+
+if (billingSupported) {
+  void refreshPro();
+  void CapApp.addListener('resume', () => void refreshPro());
+}
 </script>

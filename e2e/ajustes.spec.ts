@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { alertButton, field, lastToast, loadDemoData, openApp, visibleText } from './helpers';
+import { alertButton, field, lastToast, loadDemoData, openApp, visibleText, unlockPro } from './helpers';
 
 test('tareas personalizadas: se crean en el plan y se pueden registrar', async ({ page }) => {
   await loadDemoData(page);
@@ -76,7 +76,8 @@ test('exportar e importar una copia en un dispositivo nuevo', async ({ page, bro
   await expect(other.locator('.vehicle-card').filter({ visible: true })).toHaveCount(3);
 });
 
-test('cambiar de tema y de modo', async ({ page }) => {
+test('cambiar de tema y de modo (Pro)', async ({ page }) => {
+  await unlockPro(page);
   await openApp(page, '/tabs/settings');
   await page.locator('.palette').filter({ hasText: 'Petróleo' }).click();
   await page.locator('ion-segment-button').filter({ hasText: 'Oscuro' }).click();

@@ -3,6 +3,21 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versiones: [SemVer](https://semver.org/lang/es/)
 (antes de 1.0, cada versión con funciones nuevas sube el número del medio).
 
+## [1.0.0] — 2026-10-06
+
+Primera versión para Google Play.
+
+### Añadido
+- **Garage Pro**, pago único en Google Play: pestaña Gastos, temas de color extra, más de 2 vehículos y widget
+  de escritorio. Pantalla "Garage Pro" con la compra y "Restaurar compra"; acceso desde Ajustes y desde cada
+  función bloqueada.
+- Firma de publicación y `npm run aab` (paquete para Google Play).
+- Política de privacidad en GitHub Pages (`docs/`), ficha de la tienda y capturas (`store/`, `npm run store:shots`).
+
+### Cambiado
+- Versión gratuita: hasta 2 vehículos propios (los de ejemplo no cuentan) y tema Taller.
+- Testigos de estado más compactos en móviles estrechos (no se cortaba "3 vencidos").
+
 ## [0.5.0] — 2026-10-06
 
 ### Añadido

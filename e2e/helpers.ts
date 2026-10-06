@@ -30,6 +30,11 @@ export function alertButton(page: Page, text: string): Locator {
   return page.locator('ion-alert button', { hasText: text });
 }
 
+/** Garage Pro activado (como si ya se hubiera comprado): se aplica antes de cargar la app. */
+export async function unlockPro(page: Page) {
+  await page.addInitScript(() => localStorage.setItem('garage-pro', '1'));
+}
+
 export async function loadDemoData(page: Page) {
   await openApp(page, '/tabs/settings');
   await visibleText(page, 'Cargar datos de ejemplo').click();

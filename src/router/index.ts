@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 import TabsPage from '@/views/TabsPage.vue';
+import { canAddVehicle } from '@/lib/pro';
+import { useGarageStore } from '@/stores/garage';
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/tabs/garage' },
@@ -15,7 +17,13 @@ const routes: RouteRecordRaw[] = [
       { path: 'settings', component: () => import('@/views/SettingsPage.vue') },
     ],
   },
-  { path: '/vehicles/new', component: () => import('@/views/VehicleFormPage.vue') },
+  {
+    path: '/vehicles/new',
+    component: () => import('@/views/VehicleFormPage.vue'),
+    // Gratis hasta FREE_VEHICLES vehículos: el siguiente lleva a Garage Pro.
+    beforeEnter: () => (canAddVehicle(useGarageStore().vehicles) ? true : '/pro?from=vehicles'),
+  },
+  { path: '/pro', component: () => import('@/views/ProPage.vue') },
   { path: '/vehicles/:id', component: () => import('@/views/VehicleDetailPage.vue'), props: true },
   { path: '/vehicles/:id/edit', component: () => import('@/views/VehicleFormPage.vue'), props: true },
   { path: '/vehicles/:id/plan', component: () => import('@/views/SchedulesPage.vue'), props: true },

@@ -38,7 +38,8 @@ describe('widget', () => {
   it('sin tareas o sin vehículos: mensaje para el widget, en el idioma de la app', () => {
     expect(widgetPayload([vehicle], []).empty).toBe('Todo al día ✓');
     i18n.global.locale.value = 'en';
-    expect(widgetPayload([], [])).toEqual({ quickLog: 'Log', empty: 'Add a vehicle in Garage', items: [] });
+    expect(widgetPayload([], [])).toEqual({ quickLog: 'Log', empty: 'Add a vehicle in Garage', items: [], open: '/tabs/reminders' });
+    expect(widgetPayload([vehicle], [r('oil', 'overdue')], false)).toMatchObject({ quickLog: '', items: [], open: '/pro?from=widget' });
   });
 
   it('enlaces del widget', () => {

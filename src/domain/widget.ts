@@ -21,9 +21,12 @@ export interface WidgetItem {
 }
 
 export interface WidgetPayload {
+  /** Texto del botón de registro rápido; vacío lo oculta. */
   quickLog: string;
   empty: string;
   items: WidgetItem[];
+  /** Ruta al tocar el widget fuera de las filas y del botón. */
+  open: string;
 }
 
 export const WIDGET_ROWS = 3;
@@ -35,7 +38,9 @@ function subtitle(r: Reminder): string {
 }
 
 /** `reminders`: todos los recordatorios, ya ordenados por urgencia (como `store.allReminders`). */
-export function widgetPayload(vehicles: readonly Vehicle[], reminders: readonly Reminder[]): WidgetPayload {
+export function widgetPayload(vehicles: readonly Vehicle[], reminders: readonly Reminder[], pro = true): WidgetPayload {
+  // El widget es de Garage Pro: sin él, solo invita a desbloquearlo.
+  if (!pro) return { quickLog: '', empty: t('widget.locked'), items: [], open: '/pro?from=widget' };
   const names = new Map(vehicles.map((v) => [v.id, v.name]));
   // Lo pospuesto y lo que no tiene historial no es "lo próximo": se queda en la app.
   const items = reminders
@@ -51,5 +56,6 @@ export function widgetPayload(vehicles: readonly Vehicle[], reminders: readonly 
     quickLog: t('widget.quickLog'),
     empty: vehicles.length === 0 ? t('widget.noVehicles') : t('widget.allGood'),
     items,
+    open: '/tabs/reminders',
   };
 }

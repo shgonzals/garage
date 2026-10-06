@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue';
+import { FREE_PALETTE, isPro } from '@/lib/pro';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type PaletteId = 'taller' | 'britanico' | 'petroleo' | 'nocturno' | 'rosa';
@@ -50,7 +51,7 @@ function apply() {
   const dark = themePreference.value === 'dark' || (themePreference.value === 'system' && media.matches);
   // `ion-palette-dark` activa la paleta oscura de Ionic; nuestros tokens cuelgan de la misma clase.
   root.classList.toggle('ion-palette-dark', dark);
-  root.dataset.palette = palettePreference.value;
+  root.dataset.palette = isPro.value ? palettePreference.value : FREE_PALETTE;
   // Color de la barra del navegador / sistema en móvil.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', getComputedStyle(root).getPropertyValue('--g-bg').trim());
 }
@@ -66,4 +67,5 @@ export function initTheme() {
     write(PALETTE_KEY, palette);
     apply();
   });
+  watch(isPro, apply);
 }

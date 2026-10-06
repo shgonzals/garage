@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { loadDemoData, openApp, visibleText } from './helpers';
+import { loadDemoData, openApp, unlockPro, visibleText } from './helpers';
 
 test('gastos: total del año, gráfico y cifras por vehículo', async ({ page }) => {
+  await unlockPro(page);
   await loadDemoData(page);
   await openApp(page, '/tabs/stats');
 

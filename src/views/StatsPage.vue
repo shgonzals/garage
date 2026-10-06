@@ -19,6 +19,24 @@
         <p>{{ $t('statsPage.emptyText') }}</p>
       </div>
 
+      <div v-else-if="!isPro" class="locked">
+        <div class="locked-preview" aria-hidden="true">
+          <section class="hero">
+            <div class="hero-label">{{ $t('statsPage.spentIn', { year }) }}</div>
+            <div class="hero-value">{{ formatMoney(totals.total || 123456) }}</div>
+          </section>
+          <section class="g-card chart-card">
+            <SpendingChart :months="totals.total > 0 ? months : SAMPLE_MONTHS" />
+          </section>
+        </div>
+        <div class="locked-cta g-card">
+          <div class="locked-emoji" aria-hidden="true">💶</div>
+          <h2>{{ $t('statsPage.lockedTitle') }}</h2>
+          <p class="g-secondary">{{ $t('statsPage.lockedText') }}</p>
+          <ion-button shape="round" router-link="/pro?from=stats">{{ $t('statsPage.lockedButton') }}</ion-button>
+        </div>
+      </div>
+
       <template v-else>
         <!-- Filtros en una sola fila: vehículo y año -->
         <div class="filters">
@@ -157,7 +175,15 @@ import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { formatDecimal, formatLiters, formatMoney, formatUsage, monthName } from '@/domain/format';
 import { monthlySpending, vehicleYearStats, yearsWithData, type YearStats } from '@/domain/stats';
 import { usageUnit, type UsageUnit } from '@/domain/units';
+import { isPro } from '@/lib/pro';
 import { useGarageStore } from '@/stores/garage';
+
+/** Gráfico de muestra tras el candado cuando aún no hay importes. */
+const SAMPLE_MONTHS = [40, 0, 120, 60, 35, 0, 90, 300, 55, 70, 0, 45].map((e, month) => ({
+  month,
+  maintenance: (month % 3 === 0 ? e : e / 3) * 100,
+  fuel: (month % 3 === 0 ? 30 : e) * 100,
+}));
 
 
 const store = useGarageStore();
@@ -358,5 +384,28 @@ function consumption(stats: YearStats, unit: UsageUnit, bare = false): string {
   .kpis {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+.locked {
+  position: relative;
+}
+.locked-preview {
+  filter: blur(6px);
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+}
+.locked-cta {
+  position: absolute;
+  inset: 190px 8px auto;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: var(--g-shadow-md);
+}
+.locked-cta h2 {
+  margin: 6px 0;
+  font-size: 20px;
+}
+.locked-emoji {
+  font-size: 36px;
 }
 </style>
