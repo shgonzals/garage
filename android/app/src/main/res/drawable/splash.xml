@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pantalla de inicio en Android < 12: grafito con el logo en un círculo amarillo, centrado.
+     En Android 12+ la dibuja el sistema con los atributos windowSplashScreen* de styles.xml. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_background" />
+    <item android:gravity="center" android:width="144dp" android:height="144dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/ic_launcher_background" />
+        </shape>
+    </item>
+    <item android:gravity="center" android:width="216dp" android:height="216dp"
+        android:drawable="@drawable/ic_launcher_foreground" />
+</layer-list>

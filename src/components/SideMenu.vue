@@ -2,7 +2,7 @@
   <ion-menu content-id="main" type="overlay" :disabled="!isDesktop" :swipe-gesture="false">
     <ion-content class="side" :class="{ collapsed: sidebarCollapsed }">
       <div class="brand">
-        <span v-if="!sidebarCollapsed" class="brand-name"><span aria-hidden="true">🏍️</span> Garage</span>
+        <span v-if="!sidebarCollapsed" class="brand-name"><AppLogo :size="26" /> Garage</span>
         <button
           type="button"
           class="icon-btn"
@@ -83,6 +83,7 @@ import { add, alarmOutline, carSportOutline, flash, menuOutline, settingsOutline
 import { useDesktop } from '@/composables/useDesktop';
 import { sidebarCollapsed } from '@/composables/useSidebar';
 import { useGarageStore } from '@/stores/garage';
+import AppLogo from './AppLogo.vue';
 import { STATUS_TONE } from './status';
 import VehicleAvatar from './VehicleAvatar.vue';
 
@@ -129,6 +130,9 @@ ion-menu {
   margin-bottom: 14px;
 }
 .brand-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--g-font-display);
   font-size: 20px;
   font-weight: 700;

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Amarillo de seguridad del tema Taller (acento). -->
+    <color name="ic_launcher_background">#F5C518</color>
+    <!-- Grafito del tema Taller en oscuro (fondo oscuro): fondo de la pantalla de inicio. -->
+    <color name="splash_background">#14171B</color>
 </resources>

@@ -16,7 +16,12 @@
     </style>
 
 
+    <!-- Pantalla de inicio: en Android 12+ la pinta el sistema (fondo grafito, logo en círculo amarillo);
+         en versiones anteriores se usa drawable/splash.xml como fondo. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
