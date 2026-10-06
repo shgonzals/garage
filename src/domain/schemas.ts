@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TASKS, VEHICLE_TYPES } from './tasks';
+import { isTaskId, VEHICLE_TYPES } from './tasks';
 import type { TaskId, VehicleType } from './types';
 
 const isoDate = z
@@ -16,7 +16,8 @@ const optionalText = z
 const km = z.number({ error: 'Introduce los km' }).int('Sin decimales').min(0, 'No puede ser negativo').max(5_000_000);
 
 const vehicleTypes = VEHICLE_TYPES.map((v) => v.id) as [VehicleType, ...VehicleType[]];
-const taskIds = TASKS.map((t) => t.id) as [TaskId, ...TaskId[]];
+/** Tarea del catálogo o personalizada (`custom:<uuid>`). */
+export const taskIdSchema = z.custom<TaskId>((v) => typeof v === 'string' && isTaskId(v), 'Tarea no válida');
 
 export const vehicleInputSchema = z.object({
   name: z.string().trim().min(1, 'Ponle un nombre').max(60),
@@ -42,7 +43,7 @@ export const quickLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Elige un vehículo'),
   done_on: isoDate,
   odometer_km: km.nullable(),
-  task_ids: z.array(z.enum(taskIds)).min(1, 'Marca al menos una tarea'),
+  task_ids: z.array(taskIdSchema).min(1, 'Marca al menos una tarea'),
   /** Importe en euros tal y como lo escribe el usuario; se guarda en céntimos. */
   cost: z.number().min(0).max(1_000_000).nullable(),
   notes: optionalText,
@@ -56,6 +57,20 @@ export const scheduleInputSchema = z.object({
   enabled: z.boolean(),
 });
 export type ScheduleInput = z.output<typeof scheduleInputSchema>;
+
+/** Alta de una tarea personalizada con su intervalo (al menos km o días). */
+export const customTaskInputSchema = z
+  .object({
+    label: z.string().trim().min(1, 'Ponle un nombre').max(40, 'Máximo 40 caracteres'),
+    emoji: z.string().min(1).max(8),
+    interval_km: z.number().int().positive().nullable(),
+    interval_days: z.number().int().positive().nullable(),
+  })
+  .refine((v) => v.interval_km !== null || v.interval_days !== null, {
+    message: 'Indica km, años o ambos',
+    path: ['interval'],
+  });
+export type CustomTaskInput = z.output<typeof customTaskInputSchema>;
 
 /** Euros (posible float del input) → céntimos enteros. */
 export function eurosToCents(euros: number): number {

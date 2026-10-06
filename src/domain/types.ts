@@ -5,7 +5,8 @@ export type IsoDateTime = string;
 
 export type VehicleType = 'motorcycle' | 'moped' | 'car' | 'van';
 
-export type TaskId =
+/** Tareas del catálogo (domain/tasks.ts). */
+export type BuiltinTaskId =
   | 'oil'
   | 'chain_lube'
   | 'chain_tension'
@@ -20,6 +21,11 @@ export type TaskId =
   | 'battery'
   | 'itv'
   | 'other';
+
+/** Tarea creada por el usuario para un vehículo: `custom:<uuid>`. */
+export type CustomTaskId = `custom:${string}`;
+
+export type TaskId = BuiltinTaskId | CustomTaskId;
 
 /** Columnas comunes a todas las tablas sincronizables (ADR: UUID v7 + borrado lógico). */
 export interface Row {
@@ -64,6 +70,13 @@ export interface EntryItem extends Row {
   entry_id: string;
   task_id: TaskId;
   notes: string | null;
+}
+
+export interface CustomTask extends Row {
+  id: CustomTaskId;
+  vehicle_id: string;
+  label: string;
+  emoji: string;
 }
 
 export interface Schedule {

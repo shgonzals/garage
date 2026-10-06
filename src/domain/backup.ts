@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { TASKS, VEHICLE_TYPES } from './tasks';
-import type { TaskId, VehicleType } from './types';
+import { taskIdSchema } from './schemas';
+import { VEHICLE_TYPES } from './tasks';
+import type { VehicleType } from './types';
 
 /**
  * Copia de seguridad: todas las filas de todas las tablas, borradas incluidas, en JSON.
@@ -18,7 +19,6 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const timestamp = z.string().min(10).max(40);
 const row = { id, created_at: timestamp, updated_at: timestamp, deleted_at: timestamp.nullable() };
 const vehicleTypes = VEHICLE_TYPES.map((v) => v.id) as [VehicleType, ...VehicleType[]];
-const taskIds = TASKS.map((t) => t.id) as [TaskId, ...TaskId[]];
 
 const vehicle = z.object({
   ...row,
@@ -29,6 +29,14 @@ const vehicle = z.object({
   plate: text,
   first_registration: isoDate.nullable(),
   photo: z.string().startsWith('data:image/').max(1_000_000).nullable().default(null), // migración 2
+});
+
+const customTask = z.object({
+  ...row,
+  id: z.string().regex(/^custom:[0-9a-f-]{36}$/),
+  vehicle_id: id,
+  label: z.string().min(1).max(40),
+  emoji: z.string().min(1).max(8),
 });
 
 const entry = z.object({
@@ -53,13 +61,13 @@ const odometerReading = z.object({
 const entryItem = z.object({
   ...row,
   entry_id: id,
-  task_id: z.enum(taskIds),
+  task_id: taskIdSchema,
   notes: text,
 });
 
 const schedule = z.object({
   vehicle_id: id,
-  task_id: z.enum(taskIds),
+  task_id: taskIdSchema,
   interval_km: z.number().int().positive().nullable(),
   interval_days: z.number().int().positive().nullable(),
   enabled: z.union([z.literal(0), z.literal(1)]),
@@ -81,6 +89,7 @@ const document = z.object({
 /** Tablas en orden de importación (las claves foráneas están activas). */
 export const BACKUP_TABLES = {
   vehicles: { schema: vehicle, key: ['id'] },
+  custom_tasks: { schema: customTask, key: ['id'] }, // migración 4
   entries: { schema: entry, key: ['id'] },
   odometer_readings: { schema: odometerReading, key: ['id'] },
   entry_items: { schema: entryItem, key: ['id'] },
@@ -97,6 +106,7 @@ export const backupSchema = z.object({
   exported_at: z.string(),
   data: z.object({
     vehicles: z.array(vehicle),
+    custom_tasks: z.array(customTask).default([]),
     entries: z.array(entry),
     odometer_readings: z.array(odometerReading),
     entry_items: z.array(entryItem),

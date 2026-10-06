@@ -114,6 +114,22 @@ export const MIGRATIONS: readonly { version: number; sql: string }[] = [
       ) WHERE source = 'entry';
     `,
   },
+  {
+    version: 4,
+    sql: `
+      -- Tareas personalizadas por vehículo. Su intervalo vive en schedules (task_id = id).
+      CREATE TABLE custom_tasks (
+        id TEXT PRIMARY KEY NOT NULL,
+        vehicle_id TEXT NOT NULL REFERENCES vehicles(id),
+        label TEXT NOT NULL,
+        emoji TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        deleted_at TEXT
+      );
+      CREATE INDEX idx_custom_tasks_vehicle ON custom_tasks (vehicle_id);
+    `,
+  },
 ];
 
 export async function migrate(db: SqlDatabase): Promise<number> {

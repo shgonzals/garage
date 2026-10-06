@@ -5,9 +5,19 @@ import type { GarageRepository } from '@/db/repository';
 import { backupFileName, parseBackup, type BackupTable } from '@/domain/backup';
 import { todayIso } from '@/domain/dates';
 import { compareReminders, computeReminders, summarize, type Reminder, type VehicleSummary } from '@/domain/reminders';
-import type { QuickLogData, ScheduleInput, VehicleData } from '@/domain/schemas';
+import type { CustomTaskInput, QuickLogData, ScheduleInput, VehicleData } from '@/domain/schemas';
+import { registerCustomTasks, TASKS, type TaskDef } from '@/domain/tasks';
 import { estimateKmRate, estimatedKmDueDate, type KmRate } from '@/domain/forecast';
-import type { EntryWithItems, IsoDate, OdometerReading, Schedule, TaskId, Vehicle } from '@/domain/types';
+import type {
+  CustomTask,
+  CustomTaskId,
+  EntryWithItems,
+  IsoDate,
+  OdometerReading,
+  Schedule,
+  TaskId,
+  Vehicle,
+} from '@/domain/types';
 
 export const useGarageStore = defineStore('garage', () => {
   const repo = shallowRef<GarageRepository | null>(null);
@@ -18,6 +28,7 @@ export const useGarageStore = defineStore('garage', () => {
   const schedules = ref<Schedule[]>([]);
   const currentKm = ref(new Map<string, number>());
   const readings = ref<OdometerReading[]>([]);
+  const customTasks = ref<CustomTask[]>([]);
   const today = ref(todayIso());
 
   function r(): GarageRepository {
@@ -33,13 +44,17 @@ export const useGarageStore = defineStore('garage', () => {
 
   /** Volumen de datos personal (decenas de vehículos, cientos de entries): se carga todo en memoria. */
   async function reload() {
-    const [v, e, s, km, rd] = await Promise.all([
+    const [v, e, s, km, rd, ct] = await Promise.all([
       r().listVehicles(),
       r().listEntries(),
       r().listSchedules(),
       r().currentKmByVehicle(),
       r().listAllReadings(),
+      r().listCustomTasks(),
     ]);
+    // Antes que el resto: los derivados (recordatorios, etiquetas) resuelven nombres con getTask.
+    registerCustomTasks(ct);
+    customTasks.value = ct;
     vehicles.value = v;
     entries.value = e;
     schedules.value = s;
@@ -84,6 +99,14 @@ export const useGarageStore = defineStore('garage', () => {
     for (const [id, reminders] of remindersByVehicle.value) map.set(id, summarize(reminders));
     return map;
   });
+
+  /** Tareas que se pueden registrar en un vehículo: catálogo + sus personalizadas vigentes. */
+  function tasksFor(vehicleId: string): TaskDef[] {
+    const own = customTasks.value
+      .filter((t) => t.vehicle_id === vehicleId && !t.deleted_at)
+      .map((t) => ({ id: t.id, label: t.label, emoji: t.emoji, defaults: {} }));
+    return [...TASKS, ...own];
+  }
 
   /** Lecturas por vehículo (orden por fecha). */
   const readingsByVehicle = computed(() => {
@@ -168,6 +191,22 @@ export const useGarageStore = defineStore('garage', () => {
     await reload();
   }
 
+  async function createCustomTask(vehicleId: string, input: CustomTaskInput): Promise<CustomTask> {
+    const task = await r().createCustomTask(vehicleId, input);
+    await reload();
+    return task;
+  }
+
+  async function renameCustomTask(id: CustomTaskId, label: string, emoji: string) {
+    await r().renameCustomTask(id, label, emoji);
+    await reload();
+  }
+
+  async function deleteCustomTask(id: CustomTaskId) {
+    await r().deleteCustomTask(id);
+    await reload();
+  }
+
   /** Copia de seguridad: nombre de archivo y contenido JSON. */
   async function exportBackup(): Promise<{ name: string; json: string }> {
     const backup = await r().exportBackup(MIGRATIONS.at(-1)!.version);
@@ -203,6 +242,8 @@ export const useGarageStore = defineStore('garage', () => {
     summaries,
     allReminders,
     readingsByVehicle,
+    customTasks,
+    tasksFor,
     kmRates,
     kmEstimate,
     repository: computed(() => repo.value),
@@ -219,6 +260,9 @@ export const useGarageStore = defineStore('garage', () => {
     listReadings,
     deleteReading,
     saveSchedules,
+    createCustomTask,
+    renameCustomTask,
+    deleteCustomTask,
     exportBackup,
     importBackup,
   };

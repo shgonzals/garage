@@ -1,9 +1,11 @@
 import { v7 as uuidv7 } from 'uuid';
 import { BACKUP_FORMAT, BACKUP_TABLES, backupColumns, type Backup, type BackupTable } from '@/domain/backup';
 import { nowIso } from '@/domain/dates';
-import { eurosToCents, type QuickLogData, type ScheduleInput, type VehicleData } from '@/domain/schemas';
+import { eurosToCents, type CustomTaskInput, type QuickLogData, type ScheduleInput, type VehicleData } from '@/domain/schemas';
 import { defaultSchedulesFor } from '@/domain/tasks';
 import type {
+  CustomTask,
+  CustomTaskId,
   EntryItem,
   EntryWithItems,
   IsoDate,
@@ -283,8 +285,13 @@ export class GarageRepository {
   }
 
   async upsertSchedule(vehicleId: string, taskId: TaskId, input: ScheduleInput): Promise<void> {
-    await this.db.run(
-      `INSERT INTO schedules (vehicle_id, task_id, interval_km, interval_days, enabled, updated_at, deleted_at)
+    const s = this.scheduleUpsert(vehicleId, taskId, input, this.now());
+    await this.db.run(s.sql, s.params);
+  }
+
+  private scheduleUpsert(vehicleId: string, taskId: TaskId, input: ScheduleInput, ts: string): SqlStatement {
+    return {
+      sql: `INSERT INTO schedules (vehicle_id, task_id, interval_km, interval_days, enabled, updated_at, deleted_at)
        VALUES (?, ?, ?, ?, ?, ?, NULL)
        ON CONFLICT (vehicle_id, task_id) DO UPDATE SET
          interval_km = excluded.interval_km,
@@ -292,8 +299,57 @@ export class GarageRepository {
          enabled = excluded.enabled,
          updated_at = excluded.updated_at,
          deleted_at = NULL`,
-      [vehicleId, taskId, input.interval_km, input.interval_days, input.enabled ? 1 : 0, this.now()],
-    );
+      params: [vehicleId, taskId, input.interval_km, input.interval_days, input.enabled ? 1 : 0, ts],
+    };
+  }
+
+  // ── Tareas personalizadas ──────────────────────────────────
+
+  /** Todas, borradas incluidas: el historial necesita sus nombres. */
+  listCustomTasks(): Promise<CustomTask[]> {
+    return this.db.query<CustomTask>('SELECT * FROM custom_tasks ORDER BY created_at');
+  }
+
+  /** Alta de la tarea y de su intervalo en el plan del vehículo, en una transacción. */
+  async createCustomTask(vehicleId: string, input: CustomTaskInput): Promise<CustomTask> {
+    const ts = this.now();
+    const task: CustomTask = {
+      id: `custom:${this.newId()}`,
+      vehicle_id: vehicleId,
+      label: input.label,
+      emoji: input.emoji,
+      created_at: ts,
+      updated_at: ts,
+      deleted_at: null,
+    };
+    await this.db.batch([
+      insert('custom_tasks', { ...task }),
+      this.scheduleUpsert(
+        vehicleId,
+        task.id,
+        { interval_km: input.interval_km, interval_days: input.interval_days, enabled: true },
+        ts,
+      ),
+    ]);
+    return task;
+  }
+
+  async renameCustomTask(id: CustomTaskId, label: string, emoji: string): Promise<void> {
+    await this.db.run('UPDATE custom_tasks SET label = ?, emoji = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL', [
+      label,
+      emoji,
+      this.now(),
+      id,
+    ]);
+  }
+
+  /** La quita del plan; los registros donde aparece se conservan con su nombre. */
+  async deleteCustomTask(id: CustomTaskId): Promise<void> {
+    const ts = this.now();
+    await this.db.batch([
+      { sql: 'UPDATE custom_tasks SET deleted_at = ?, updated_at = ? WHERE id = ?', params: [ts, ts, id] },
+      { sql: 'UPDATE schedules SET deleted_at = ?, updated_at = ? WHERE task_id = ?', params: [ts, ts, id] },
+    ]);
   }
 
   // ── Copia de seguridad ─────────────────────────────────────

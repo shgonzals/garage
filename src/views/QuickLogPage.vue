@@ -140,7 +140,7 @@ import {
 } from '@ionic/vue';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { fieldErrors, quickLogSchema } from '@/domain/schemas';
-import { TASKS } from '@/domain/tasks';
+import { getTask } from '@/domain/tasks';
 import type { TaskId } from '@/domain/types';
 import { useGarageStore } from '@/stores/garage';
 
@@ -181,12 +181,18 @@ function selectVehicle(id: string) {
 const suggested = computed(() => new Set(editing ? [] : store.suggestedTasks(vehicleId.value)));
 
 /** Las tareas vencidas o próximas van primero: suele ser lo que se acaba de hacer. */
+const vehicleTasks = computed(() => {
+  const tasks = store.tasksFor(vehicleId.value);
+  // Al editar, una tarea personalizada ya borrada del plan sigue apareciendo si el registro la tiene.
+  const missing = [...selected.value].filter((id) => !tasks.some((t) => t.id === id)).map(getTask);
+  return [...tasks, ...missing];
+});
 const orderedTasks = computed(() =>
   editing
-    ? TASKS // al editar, orden fijo: las sugerencias de "ahora" no aplican a un registro pasado
+    ? vehicleTasks.value // al editar, orden fijo: las sugerencias de "ahora" no aplican a un registro pasado
     : [
-  ...TASKS.filter((t) => suggested.value.has(t.id)),
-        ...TASKS.filter((t) => !suggested.value.has(t.id)),
+        ...vehicleTasks.value.filter((t) => suggested.value.has(t.id)),
+        ...vehicleTasks.value.filter((t) => !suggested.value.has(t.id)),
       ],
 );
 

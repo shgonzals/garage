@@ -1,4 +1,4 @@
-import type { TaskId, VehicleType } from './types';
+import type { BuiltinTaskId, CustomTask, CustomTaskId, TaskId, VehicleType } from './types';
 
 export interface Interval {
   km: number | null;
@@ -102,16 +102,42 @@ export const TASKS: readonly TaskDef[] = [
   { id: 'other', label: 'Otro', emoji: '📝', defaults: {} },
 ];
 
-const BY_ID = new Map(TASKS.map((t) => [t.id, t]));
+const BY_ID = new Map<string, TaskDef>(TASKS.map((t) => [t.id, t]));
+
+/** Iconos para elegir al crear una tarea personalizada. */
+export const CUSTOM_TASK_EMOJIS = ['🔧', '🔩', '🪛', '🧽', '💡', '🧴', '🧯', '🪫'] as const;
+
+const CUSTOM_ID = /^custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * Tareas personalizadas conocidas, para que `getTask` las resuelva igual que las del catálogo.
+ * Incluye las borradas: el historial sigue mostrando su nombre. Lo rellena el store al recargar.
+ */
+const customById = new Map<string, TaskDef>();
+
+export function registerCustomTasks(tasks: readonly CustomTask[]) {
+  customById.clear();
+  for (const t of tasks) customById.set(t.id, { id: t.id, label: t.label, emoji: t.emoji, defaults: {} });
+}
+
+export function isCustomTaskId(value: string): value is CustomTaskId {
+  return CUSTOM_ID.test(value);
+}
 
 export function getTask(id: TaskId): TaskDef {
-  const task = BY_ID.get(id);
-  if (!task) throw new Error(`Tarea desconocida: ${id}`);
-  return task;
+  const task = BY_ID.get(id) ?? customById.get(id);
+  if (task) return task;
+  // Tarea personalizada aún no cargada (o de una copia a medio importar): no romper la pantalla.
+  if (isCustomTaskId(id)) return { id, label: 'Tarea personalizada', emoji: '🔧', defaults: {} };
+  throw new Error(`Tarea desconocida: ${id}`);
+}
+
+export function isBuiltinTaskId(value: string): value is BuiltinTaskId {
+  return BY_ID.has(value);
 }
 
 export function isTaskId(value: string): value is TaskId {
-  return BY_ID.has(value as TaskId);
+  return isBuiltinTaskId(value) || isCustomTaskId(value);
 }
 
 /** Tareas que se programan automáticamente al dar de alta un vehículo de este tipo. */
