@@ -60,7 +60,7 @@
             <p v-if="reminders.length === 0" class="g-secondary">
               No hay mantenimientos programados. Configúralos en el plan.
             </p>
-            <UrgencyCard v-for="r in visibleReminders" :key="r.taskId" :reminder="r" />
+            <UrgencyCard v-for="r in visibleReminders" :key="r.taskId" :reminder="r" calendar />
             <ion-button
               v-if="hiddenCount > 0"
               fill="clear"

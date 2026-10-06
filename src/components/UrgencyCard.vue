@@ -10,19 +10,35 @@
       <p v-if="estimate" class="estimate">≈ {{ formatDate(estimate) }} a tu ritmo ({{ formatNumber(perDay) }} km/día)</p>
       <p v-if="lastLine" class="last">{{ lastLine }}</p>
     </div>
+    <!-- Solo donde la tarjeta no está dentro de otro botón (ficha del vehículo). -->
+    <button
+      v-if="calendar && eventDate"
+      type="button"
+      class="calendar"
+      :aria-label="`Añadir ${task.label} a Google Calendar`"
+      title="Añadir a Google Calendar"
+      @click.stop="addToCalendar"
+    >
+      <ion-icon :icon="calendarOutline" aria-hidden="true" />
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { IonIcon } from '@ionic/vue';
+import { calendarOutline } from 'ionicons/icons';
 import { formatDate, formatNumber, reminderGauge, reminderHeadline, reminderLastLine } from '@/domain/format';
 import type { Reminder } from '@/domain/reminders';
 import { getTask } from '@/domain/tasks';
+import { googleCalendarUrl } from '@/domain/calendar';
+import { openExternal } from '@/lib/calendar';
 import { useGarageStore } from '@/stores/garage';
 import RingGauge from './RingGauge.vue';
 import { STATUS_TONE } from './status';
 
-const props = defineProps<{ reminder: Reminder; vehicleName?: string }>();
+/** `calendar`: muestra el botón para crear el evento en Google Calendar. */
+const props = defineProps<{ reminder: Reminder; vehicleName?: string; calendar?: boolean }>();
 
 const task = computed(() => getTask(props.reminder.taskId));
 const tone = computed(() => STATUS_TONE[props.reminder.status]);
@@ -32,6 +48,25 @@ const lastLine = computed(() => reminderLastLine(props.reminder));
 const store = useGarageStore();
 const estimate = computed(() => store.kmEstimate(props.reminder));
 const perDay = computed(() => Math.round(store.kmRates.get(props.reminder.vehicleId)?.perDay ?? 0));
+
+/** Día del evento: la estimación a tu ritmo si adelanta a la fecha límite; si ya pasó, no hay nada que agendar. */
+const eventDate = computed(() => {
+  if (props.reminder.status === 'unknown') return null;
+  const date = estimate.value ?? props.reminder.dueDate;
+  return date && date >= store.today ? date : null;
+});
+
+function addToCalendar() {
+  if (!eventDate.value) return;
+  const vehicle = store.vehicleById.get(props.reminder.vehicleId);
+  openExternal(
+    googleCalendarUrl({
+      title: `${vehicle?.name ?? 'Garage'} · ${task.value.label}`,
+      date: eventDate.value,
+      details: `${reminderHeadline(props.reminder)}\n\nCreado con Garage.`,
+    }),
+  );
+}
 </script>
 
 <style scoped>
@@ -86,6 +121,25 @@ p {
   margin-top: 2px;
   font-size: 13px;
   font-weight: 500;
+  color: var(--g-accent-text);
+}
+.calendar {
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: -4px -6px 0 auto;
+  border: none;
+  border-radius: var(--g-radius-md);
+  background: none;
+  color: var(--g-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+.calendar:hover {
+  background: var(--g-surface-secondary);
   color: var(--g-accent-text);
 }
 .last {
