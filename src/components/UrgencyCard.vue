@@ -7,6 +7,7 @@
         <span v-if="vehicleName" class="vehicle">· {{ vehicleName }}</span>
       </h4>
       <p class="headline">{{ reminderHeadline(reminder) }}</p>
+      <p v-if="estimate" class="estimate">≈ {{ formatDate(estimate) }} a tu ritmo ({{ formatNumber(perDay) }} km/día)</p>
       <p v-if="lastLine" class="last">{{ lastLine }}</p>
     </div>
   </div>
@@ -14,9 +15,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { reminderGauge, reminderHeadline, reminderLastLine } from '@/domain/format';
+import { formatDate, formatNumber, reminderGauge, reminderHeadline, reminderLastLine } from '@/domain/format';
 import type { Reminder } from '@/domain/reminders';
 import { getTask } from '@/domain/tasks';
+import { useGarageStore } from '@/stores/garage';
 import RingGauge from './RingGauge.vue';
 import { STATUS_TONE } from './status';
 
@@ -26,6 +28,10 @@ const task = computed(() => getTask(props.reminder.taskId));
 const tone = computed(() => STATUS_TONE[props.reminder.status]);
 const gauge = computed(() => reminderGauge(props.reminder));
 const lastLine = computed(() => reminderLastLine(props.reminder));
+
+const store = useGarageStore();
+const estimate = computed(() => store.kmEstimate(props.reminder));
+const perDay = computed(() => Math.round(store.kmRates.get(props.reminder.vehicleId)?.perDay ?? 0));
 </script>
 
 <style scoped>
@@ -75,6 +81,12 @@ p {
 }
 .warning .headline {
   color: var(--g-text-warning);
+}
+.estimate {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--g-accent-text);
 }
 .last {
   margin-top: 2px;

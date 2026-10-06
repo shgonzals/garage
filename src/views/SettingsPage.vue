@@ -50,6 +50,47 @@
       </section>
 
       <section class="g-section">
+        <h3 class="g-section-title">Avisos</h3>
+        <div class="g-card">
+          <div v-if="alertsSupported" class="toggle-row">
+            <div>
+              <div class="toggle-label">Avisos de mantenimiento</div>
+              <div class="g-secondary small">Te llegan aunque no abras la app.</div>
+            </div>
+            <ion-toggle
+              :checked="alertsEnabled"
+              aria-label="Avisos de mantenimiento"
+              @ion-change="toggleAlerts($event.detail.checked)"
+            />
+          </div>
+          <p v-if="alertsSupported && alertsEnabled && permission === 'denied'" class="denied">
+            El sistema tiene bloqueados los avisos de Garage. Actívalos en Ajustes del teléfono → Aplicaciones → Garage →
+            Notificaciones.
+          </p>
+          <p v-if="!alertsSupported" class="g-secondary small">
+            Los avisos llegan en la app de Android o iPhone, aunque no la abras. En la versión web no es posible: esto es
+            lo que recibirías.
+          </p>
+
+          <h4 class="upcoming-title">Próximos avisos</h4>
+          <ul v-if="upcoming.length > 0" class="upcoming">
+            <li v-for="a in upcoming" :key="a.id">
+              <span class="upcoming-at g-mono">{{ formatDayTime(a.at) }}</span>
+              <span class="upcoming-text">
+                <strong>{{ a.title }}</strong>
+                <span>{{ a.body }}</span>
+              </span>
+            </li>
+          </ul>
+          <p v-else class="g-secondary small">No hay nada previsto en los próximos 3 meses.</p>
+
+          <ion-button v-if="alertsSupported && alertsEnabled" fill="clear" size="small" @click="testAlert">
+            Enviar aviso de prueba
+          </ion-button>
+        </div>
+      </section>
+
+      <section class="g-section">
         <h3 class="g-section-title">Datos</h3>
         <div class="g-card">
           <p class="g-secondary info">
@@ -76,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import {
   alertController,
   IonButton,
@@ -87,18 +128,48 @@ import {
   IonSegment,
   IonSegmentButton,
   IonTitle,
+  IonToggle,
   IonToolbar,
   toastController,
 } from '@ionic/vue';
 import { seedDemoData } from '@/db/demo';
-import { formatDate } from '@/domain/format';
+import { currentAlertPlan } from '@/composables/useAlertSync';
+import { formatDate, formatDayTime } from '@/domain/format';
 import { saveTextFile } from '@/lib/files';
+import {
+  alertPermission,
+  alertsEnabled,
+  alertsSupported,
+  requestAlertPermission,
+  sendTestAlert,
+  type AlertPermission,
+} from '@/lib/notifications';
 import { useGarageStore } from '@/stores/garage';
 import { palettePreference, PALETTES, themePreference } from '@/theme/theme';
 
 const version = __APP_VERSION__;
 const store = useGarageStore();
 const busy = ref(false);
+
+// ── Avisos ──
+const permission = ref<AlertPermission>('prompt');
+onMounted(async () => {
+  permission.value = await alertPermission();
+});
+/** Los 5 próximos avisos del plan actual (en web, vista previa de lo que llegaría en el móvil). */
+const upcoming = computed(() => currentAlertPlan(store).slice(0, 5));
+
+async function toggleAlerts(on: boolean) {
+  alertsEnabled.value = on;
+  if (on) permission.value = await requestAlertPermission();
+}
+
+async function testAlert() {
+  if (permission.value !== 'granted') permission.value = await requestAlertPermission();
+  if (permission.value !== 'granted') return;
+  await sendTestAlert();
+  await toast('Te llegará un aviso en 5 segundos');
+}
 const fileInput = ref<HTMLInputElement | null>(null);
 
 // Fecha de la última exportación en este dispositivo (solo informativa).
@@ -249,6 +320,63 @@ async function seed() {
 .info {
   margin-top: 0;
   font-size: 14px;
+}
+.small {
+  font-size: 13px;
+  margin: 0;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.toggle-label {
+  font-weight: 600;
+}
+.denied {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--g-radius-md);
+  background: var(--g-bg-danger);
+  color: var(--g-text-danger);
+  font-size: 13px;
+}
+.upcoming-title {
+  margin: 16px 0 6px;
+  font-family: var(--g-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--g-text-secondary);
+}
+.upcoming {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.upcoming li {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--g-border);
+  font-size: 13px;
+}
+.upcoming-at {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--g-accent-text);
+}
+.upcoming-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.upcoming-text span {
+  color: var(--g-text-secondary);
 }
 .last-backup {
   margin: 0 0 12px;

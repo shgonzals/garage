@@ -126,6 +126,13 @@ export class GarageRepository {
     await this.db.run(s.sql, s.params);
   }
 
+  /** Todas las lecturas vigentes: base del ritmo de km de cada vehículo. */
+  listAllReadings(): Promise<OdometerReading[]> {
+    return this.db.query<OdometerReading>(
+      'SELECT * FROM odometer_readings WHERE deleted_at IS NULL ORDER BY vehicle_id, read_on, km',
+    );
+  }
+
   /** Lecturas de un vehículo, la más reciente primero. */
   listReadings(vehicleId: string): Promise<OdometerReading[]> {
     return this.db.query<OdometerReading>(

@@ -6,7 +6,8 @@ import { backupFileName, parseBackup, type BackupTable } from '@/domain/backup';
 import { todayIso } from '@/domain/dates';
 import { compareReminders, computeReminders, summarize, type Reminder, type VehicleSummary } from '@/domain/reminders';
 import type { QuickLogData, ScheduleInput, VehicleData } from '@/domain/schemas';
-import type { EntryWithItems, Schedule, TaskId, Vehicle } from '@/domain/types';
+import { estimateKmRate, estimatedKmDueDate, type KmRate } from '@/domain/forecast';
+import type { EntryWithItems, IsoDate, OdometerReading, Schedule, TaskId, Vehicle } from '@/domain/types';
 
 export const useGarageStore = defineStore('garage', () => {
   const repo = shallowRef<GarageRepository | null>(null);
@@ -16,6 +17,7 @@ export const useGarageStore = defineStore('garage', () => {
   const entries = ref<EntryWithItems[]>([]);
   const schedules = ref<Schedule[]>([]);
   const currentKm = ref(new Map<string, number>());
+  const readings = ref<OdometerReading[]>([]);
   const today = ref(todayIso());
 
   function r(): GarageRepository {
@@ -31,16 +33,18 @@ export const useGarageStore = defineStore('garage', () => {
 
   /** Volumen de datos personal (decenas de vehículos, cientos de entries): se carga todo en memoria. */
   async function reload() {
-    const [v, e, s, km] = await Promise.all([
+    const [v, e, s, km, rd] = await Promise.all([
       r().listVehicles(),
       r().listEntries(),
       r().listSchedules(),
       r().currentKmByVehicle(),
+      r().listAllReadings(),
     ]);
     vehicles.value = v;
     entries.value = e;
     schedules.value = s;
     currentKm.value = km;
+    readings.value = rd;
     today.value = todayIso();
   }
 
@@ -80,6 +84,29 @@ export const useGarageStore = defineStore('garage', () => {
     for (const [id, reminders] of remindersByVehicle.value) map.set(id, summarize(reminders));
     return map;
   });
+
+  /** Lecturas por vehículo (orden por fecha). */
+  const readingsByVehicle = computed(() => {
+    const map = new Map<string, OdometerReading[]>();
+    for (const rd of readings.value) {
+      const list = map.get(rd.vehicle_id) ?? [];
+      list.push(rd);
+      map.set(rd.vehicle_id, list);
+    }
+    return map;
+  });
+
+  /** Ritmo de uso (km/día) de cada vehículo; `null` si aún no hay datos suficientes. */
+  const kmRates = computed(() => {
+    const map = new Map<string, KmRate | null>();
+    for (const v of vehicles.value) map.set(v.id, estimateKmRate(readingsByVehicle.value.get(v.id) ?? []));
+    return map;
+  });
+
+  /** Fecha estimada a tu ritmo para un recordatorio por km, si llega antes que su fecha límite. */
+  function kmEstimate(rem: Reminder): IsoDate | null {
+    return estimatedKmDueDate(rem, kmRates.value.get(rem.vehicleId) ?? null, today.value);
+  }
 
   const allReminders = computed(() => [...remindersByVehicle.value.values()].flat().sort(compareReminders));
 
@@ -175,6 +202,9 @@ export const useGarageStore = defineStore('garage', () => {
     remindersByVehicle,
     summaries,
     allReminders,
+    readingsByVehicle,
+    kmRates,
+    kmEstimate,
     repository: computed(() => repo.value),
     init,
     reload,

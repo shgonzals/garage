@@ -28,6 +28,11 @@ export function formatNumericDate(iso: IsoDate): string {
   return format(parseISO(iso), 'dd/MM/yy');
 }
 
+/** Momento de un aviso: `11 oct · 10:00` */
+export function formatDayTime(date: Date): string {
+  return format(date, "d MMM '·' HH:mm", { locale: es }).replace('.', '');
+}
+
 /** `2026-08-18` → `18 ago` */
 export function formatShortDate(iso: IsoDate): string {
   return format(parseISO(iso), 'd MMM', { locale: es }).replace('.', '');
@@ -46,6 +51,16 @@ function formatInterval(days: number): string {
   return days % YEAR === 0 ? plural(days / YEAR, 'año', 'años') : plural(days, 'día', 'días');
 }
 
+/** Límite de un recordatorio: `a 24.200 km o antes del 14 mar 2027`. */
+export function dueText(r: Reminder): string {
+  return [
+    r.dueKm !== null ? `a ${formatNumber(r.dueKm)} km` : null,
+    r.dueDate !== null ? `${r.dueKm !== null ? 'o antes del' : 'antes del'} ${formatDate(r.dueDate)}` : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 /** Línea principal del recordatorio, p. ej. `1.150 km · Toca a 24.200 km o antes del 14 mar 2027`. */
 export function reminderHeadline(r: Reminder): string {
   if (r.status === 'unknown') {
@@ -58,12 +73,7 @@ export function reminderHeadline(r: Reminder): string {
       : `Sin registro previo · ${parts.join(' o ')}`;
   }
 
-  const target = [
-    r.dueKm !== null ? `a ${formatNumber(r.dueKm)} km` : null,
-    r.dueDate !== null ? `${r.dueKm !== null ? 'o antes del' : 'antes del'} ${formatDate(r.dueDate)}` : null,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const target = dueText(r);
 
   if (r.status === 'overdue') {
     if (r.trigger === 'km' && r.remainingKm !== null && r.remainingKm < 0) {
