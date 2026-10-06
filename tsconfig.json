@@ -16,5 +16,5 @@
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "vite.config.ts", "capacitor.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "e2e/**/*.ts", "playwright.config.ts", "vite.config.ts", "capacitor.config.ts"]
 }

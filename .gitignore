@@ -1,6 +1,9 @@
 node_modules/
 dist/
 coverage/
+# resultados de los tests de interfaz (Playwright)
+test-results/
+playwright-report/
 *.local
 .vscode/*
 !.vscode/extensions.json
