@@ -53,9 +53,18 @@
         <h3 class="g-section-title">Datos</h3>
         <div class="g-card">
           <p class="g-secondary info">
-            Todo se guarda en este dispositivo (SQLite). La sincronización en la nube llegará en la fase 0.3.
+            Todo se guarda solo en este dispositivo. Haz una copia de vez en cuando: si pierdes o cambias de móvil,
+            la importas y lo recuperas todo.
           </p>
-          <ion-button expand="block" fill="outline" shape="round" :disabled="seeding" @click="seed">
+          <p class="last-backup g-mono">
+            Última copia: {{ lastBackup ? formatDate(lastBackup) : 'nunca' }}
+          </p>
+          <div class="backup-actions">
+            <ion-button expand="block" :disabled="busy" @click="exportData">Exportar copia</ion-button>
+            <ion-button expand="block" fill="outline" :disabled="busy" @click="pickBackup">Importar copia</ion-button>
+          </div>
+          <input ref="fileInput" type="file" accept="application/json,.json" hidden @change="onBackupSelected" />
+          <ion-button expand="block" fill="clear" size="small" class="demo" :disabled="busy" @click="seed">
             Cargar datos de ejemplo
           </ion-button>
         </div>
@@ -82,12 +91,92 @@ import {
   toastController,
 } from '@ionic/vue';
 import { seedDemoData } from '@/db/demo';
+import { formatDate } from '@/domain/format';
+import { saveTextFile } from '@/lib/files';
 import { useGarageStore } from '@/stores/garage';
 import { palettePreference, PALETTES, themePreference } from '@/theme/theme';
 
 const version = __APP_VERSION__;
 const store = useGarageStore();
-const seeding = ref(false);
+const busy = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+// Fecha de la última exportación en este dispositivo (solo informativa).
+const LAST_BACKUP_KEY = 'garage-last-backup';
+const lastBackup = ref<string | null>(readLastBackup());
+
+function readLastBackup(): string | null {
+  try {
+    return localStorage.getItem(LAST_BACKUP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+async function toast(message: string, color?: string) {
+  const t = await toastController.create({ message, color, duration: 2500, position: 'top' });
+  await t.present();
+}
+
+async function exportData() {
+  busy.value = true;
+  try {
+    const { name, json } = await store.exportBackup();
+    if (!(await saveTextFile(name, json))) return;
+    lastBackup.value = store.today;
+    try {
+      localStorage.setItem(LAST_BACKUP_KEY, store.today);
+    } catch {
+      // sin almacenamiento: solo no se recuerda la fecha
+    }
+    await toast('Copia exportada ✓', 'success');
+  } catch {
+    await toast('No se pudo exportar la copia', 'danger');
+  } finally {
+    busy.value = false;
+  }
+}
+
+function pickBackup() {
+  fileInput.value?.click();
+}
+
+async function onBackupSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ''; // permite elegir el mismo archivo otra vez
+  if (!file) return;
+
+  const alert = await alertController.create({
+    header: '¿Importar copia?',
+    message: 'Se fusionará con lo que ya tienes: se añade lo que falte y, si algo está en los dos, se queda la versión más reciente. No se borra nada.',
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      { text: 'Importar', role: 'confirm' },
+    ],
+  });
+  await alert.present();
+  if ((await alert.onDidDismiss()).role !== 'confirm') return;
+
+  busy.value = true;
+  try {
+    const result = await store.importBackup(await file.text());
+    if (!result.ok) {
+      await toast(result.error, 'danger');
+      return;
+    }
+    const v = result.counts.vehicles;
+    const e = result.counts.entries;
+    await toast(
+      `Copia del ${formatDate(result.exportedAt.slice(0, 10))} importada: ${v} ${v === 1 ? 'vehículo' : 'vehículos'}, ${e} ${e === 1 ? 'registro' : 'registros'}`,
+      'success',
+    );
+  } catch {
+    await toast('No se pudo importar la copia', 'danger');
+  } finally {
+    busy.value = false;
+  }
+}
 
 async function seed() {
   const alert = await alertController.create({
@@ -102,14 +191,14 @@ async function seed() {
   const { role } = await alert.onDidDismiss();
   if (role !== 'confirm' || !store.repository) return;
 
-  seeding.value = true;
+  busy.value = true;
   try {
     await seedDemoData(store.repository);
     await store.reload();
     const toast = await toastController.create({ message: 'Datos de ejemplo cargados', duration: 1500, position: 'top' });
     await toast.present();
   } finally {
-    seeding.value = false;
+    busy.value = false;
   }
 }
 </script>
@@ -160,6 +249,23 @@ async function seed() {
 .info {
   margin-top: 0;
   font-size: 14px;
+}
+.last-backup {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--g-text-muted);
+}
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.backup-actions ion-button {
+  margin: 0;
+}
+.demo {
+  margin-top: 8px;
 }
 .about {
   text-align: center;

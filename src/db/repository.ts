@@ -1,4 +1,5 @@
 import { v7 as uuidv7 } from 'uuid';
+import { BACKUP_FORMAT, BACKUP_TABLES, backupColumns, type Backup, type BackupTable } from '@/domain/backup';
 import { nowIso } from '@/domain/dates';
 import { eurosToCents, type QuickLogData, type ScheduleInput, type VehicleData } from '@/domain/schemas';
 import { defaultSchedulesFor } from '@/domain/tasks';
@@ -286,5 +287,45 @@ export class GarageRepository {
          deleted_at = NULL`,
       [vehicleId, taskId, input.interval_km, input.interval_days, input.enabled ? 1 : 0, this.now()],
     );
+  }
+
+  // ── Copia de seguridad ─────────────────────────────────────
+
+  /** Todas las filas de todas las tablas, borradas incluidas (las necesita la futura sync). */
+  async exportBackup(schemaVersion: number): Promise<Backup> {
+    const data = {} as Record<BackupTable, unknown[]>;
+    for (const table of Object.keys(BACKUP_TABLES) as BackupTable[]) {
+      const cols = backupColumns(table).join(', ');
+      data[table] = await this.db.query(`SELECT ${cols} FROM ${table}`);
+    }
+    return {
+      app: 'garage',
+      format: BACKUP_FORMAT,
+      schema_version: schemaVersion,
+      exported_at: this.now(),
+      data: data as Backup['data'],
+    };
+  }
+
+  /**
+   * Fusiona una copia con lo que hay: cada fila se identifica por su clave y gana la de
+   * `updated_at` más reciente. Importar dos veces la misma copia no cambia nada. Todo o nada.
+   */
+  async importBackup(backup: Backup): Promise<Record<BackupTable, number>> {
+    const statements: SqlStatement[] = [];
+    const counts = {} as Record<BackupTable, number>;
+    for (const table of Object.keys(BACKUP_TABLES) as BackupTable[]) {
+      const cols = backupColumns(table);
+      const key = BACKUP_TABLES[table].key as readonly string[];
+      const updates = cols.filter((c) => !key.includes(c)).map((c) => `${c} = excluded.${c}`);
+      const sql = `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders(cols.length)})
+        ON CONFLICT (${key.join(', ')}) DO UPDATE SET ${updates.join(', ')}
+        WHERE excluded.updated_at > ${table}.updated_at`;
+      const rows = backup.data[table] as Record<string, SqlValue>[];
+      for (const r of rows) statements.push({ sql, params: cols.map((c) => r[c] ?? null) });
+      counts[table] = rows.length;
+    }
+    await this.db.batch(statements);
+    return counts;
   }
 }

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { computed, ref, shallowRef } from 'vue';
+import { MIGRATIONS } from '@/db/migrations';
 import type { GarageRepository } from '@/db/repository';
+import { backupFileName, parseBackup, type BackupTable } from '@/domain/backup';
 import { todayIso } from '@/domain/dates';
 import { compareReminders, computeReminders, summarize, type Reminder, type VehicleSummary } from '@/domain/reminders';
 import type { QuickLogData, ScheduleInput, VehicleData } from '@/domain/schemas';
@@ -139,6 +141,23 @@ export const useGarageStore = defineStore('garage', () => {
     await reload();
   }
 
+  /** Copia de seguridad: nombre de archivo y contenido JSON. */
+  async function exportBackup(): Promise<{ name: string; json: string }> {
+    const backup = await r().exportBackup(MIGRATIONS.at(-1)!.version);
+    return { name: backupFileName(todayIso()), json: JSON.stringify(backup) };
+  }
+
+  /** Valida e importa (fusionando) el texto de un archivo de copia. */
+  async function importBackup(
+    json: string,
+  ): Promise<{ ok: true; counts: Record<BackupTable, number>; exportedAt: string } | { ok: false; error: string }> {
+    const parsed = parseBackup(json, MIGRATIONS.at(-1)!.version);
+    if (!parsed.ok) return parsed;
+    const counts = await r().importBackup(parsed.backup);
+    await reload();
+    return { ok: true, counts, exportedAt: parsed.backup.exported_at };
+  }
+
   async function saveSchedules(vehicleId: string, changes: { taskId: TaskId; input: ScheduleInput }[]) {
     for (const c of changes) await r().upsertSchedule(vehicleId, c.taskId, c.input);
     await reload();
@@ -170,5 +189,7 @@ export const useGarageStore = defineStore('garage', () => {
     listReadings,
     deleteReading,
     saveSchedules,
+    exportBackup,
+    importBackup,
   };
 });
