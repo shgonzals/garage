@@ -99,6 +99,9 @@ export const TASKS: readonly TaskDef[] = [
   { id: 'battery', label: 'Batería', emoji: '🔋', defaults: {} },
   // La ITV no usa schedule: su próxima fecha la calcula domain/itv.ts.
   { id: 'itv', label: 'ITV', emoji: '📋', defaults: {} },
+  // Vencimientos anuales: su fecha la calcula domain/deadlines.ts; se renuevan registrándolos.
+  { id: 'insurance', label: 'Seguro', emoji: '🛡️', defaults: {} },
+  { id: 'road_tax', label: 'Impuesto de circulación', emoji: '🏛️', defaults: {} },
   { id: 'other', label: 'Otro', emoji: '📝', defaults: {} },
 ];
 

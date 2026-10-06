@@ -11,6 +11,8 @@ export function vehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     model: 'CBR600RR',
     plate: null,
     first_registration: null,
+    insurance_due: null,
+    road_tax_due: null,
     photo: null,
     created_at: TS,
     updated_at: TS,

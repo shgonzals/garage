@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { seedDemoData } from '@/db/demo';
+import { removeDemoData, seedDemoData } from '@/db/demo';
 import { MIGRATIONS, migrate } from '@/db/migrations';
 import { GarageRepository } from '@/db/repository';
 import type { SqlDatabase } from '@/db/sql';
@@ -220,6 +220,16 @@ describe('GarageRepository', () => {
 });
 
 describe('datos de ejemplo', () => {
+  it('no se duplican y se pueden quitar sin tocar los vehículos del usuario', async () => {
+    const mine = await repo.createVehicle(newVehicle({ plate: '0000XYZ' }), '2026-10-06');
+    expect(await seedDemoData(repo)).toBe(true);
+    expect(await seedDemoData(repo)).toBe(false);
+    expect(await repo.listVehicles()).toHaveLength(4);
+
+    expect(await removeDemoData(repo)).toBe(3);
+    expect((await repo.listVehicles()).map((v) => v.id)).toEqual([mine.id]);
+  });
+
   it('reproducen las tarjetas del mockup', async () => {
     const today = new Date(2026, 9, 6);
     await seedDemoData(repo, today);

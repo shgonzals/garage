@@ -1,6 +1,7 @@
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { Reminder, VehicleSummary } from './reminders';
+import { isAnnualDeadline } from './deadlines';
 import { getTask, YEAR } from './tasks';
 import type { IsoDate } from './types';
 
@@ -79,6 +80,7 @@ export function reminderHeadline(r: Reminder): string {
     if (r.trigger === 'km' && r.remainingKm !== null && r.remainingKm < 0) {
       return `+${formatKm(-r.remainingKm)} · Tocaba a ${formatNumber(r.dueKm!)} km`;
     }
+    if (isAnnualDeadline(r.taskId)) return `Vencido el ${formatDate(r.dueDate!)}`;
     return `Vencido · Tocaba el ${formatDate(r.dueDate!)}`;
   }
 
@@ -90,6 +92,8 @@ export function reminderHeadline(r: Reminder): string {
           ? 'Hoy'
           : `En ${plural(r.remainingDays, 'día', 'días')}`
         : '';
+  // Seguro e impuesto no "tocan": vencen.
+  if (isAnnualDeadline(r.taskId) && r.dueDate) return `${lead} · Vence el ${formatDate(r.dueDate)}`;
   return `${lead} · Toca ${target}`;
 }
 

@@ -60,6 +60,8 @@ export class GarageRepository {
       model: data.model,
       plate: data.plate,
       first_registration: data.first_registration,
+      insurance_due: data.insurance_due,
+      road_tax_due: data.road_tax_due,
       photo: data.photo,
       created_at: ts,
       updated_at: ts,
@@ -89,9 +91,22 @@ export class GarageRepository {
 
   async updateVehicle(id: string, data: VehicleData): Promise<void> {
     await this.db.run(
-      `UPDATE vehicles SET name = ?, type = ?, make = ?, model = ?, plate = ?, first_registration = ?, photo = ?, updated_at = ?
+      `UPDATE vehicles SET name = ?, type = ?, make = ?, model = ?, plate = ?, first_registration = ?,
+         insurance_due = ?, road_tax_due = ?, photo = ?, updated_at = ?
        WHERE id = ? AND deleted_at IS NULL`,
-      [data.name, data.type, data.make, data.model, data.plate, data.first_registration, data.photo, this.now(), id],
+      [
+        data.name,
+        data.type,
+        data.make,
+        data.model,
+        data.plate,
+        data.first_registration,
+        data.insurance_due,
+        data.road_tax_due,
+        data.photo,
+        this.now(),
+        id,
+      ],
     );
   }
 

@@ -26,6 +26,8 @@ export const vehicleInputSchema = z.object({
   model: optionalText,
   plate: optionalText.transform((s) => s?.toUpperCase().replace(/\s+/g, '') ?? null),
   first_registration: isoDate.nullable(),
+  insurance_due: isoDate.nullable().default(null),
+  road_tax_due: isoDate.nullable().default(null),
   /** Data URL ya reducida en el cliente; el tope evita meter una foto original en la BD por error. */
   photo: z
     .string()

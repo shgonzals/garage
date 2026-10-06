@@ -1,7 +1,8 @@
 import { addDays, differenceInCalendarDays, isSaturday, isSunday, nextSaturday, nextSunday, parseISO, set, subDays } from 'date-fns';
 import { toIsoDate } from './dates';
 import type { KmRate } from './forecast';
-import { dueText, formatNumber } from './format';
+import { isAnnualDeadline } from './deadlines';
+import { dueText, formatDate, formatNumber } from './format';
 import { soonThresholdDays, soonThresholdKm, type Reminder } from './reminders';
 import { getTask } from './tasks';
 import type { IsoDate, Vehicle } from './types';
@@ -81,7 +82,7 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
             kind: 'soon',
             at: atHour(soon, hour),
             title: `${name} · ${label}`,
-            body: `Se acerca: toca ${dueText(r)}.`,
+            body: isAnnualDeadline(r.taskId) ? `Vence el ${formatDate(r.dueDate!)}.` : `Se acerca: toca ${dueText(r)}.`,
             vehicleId: vehicle.id,
           });
         }
@@ -96,7 +97,9 @@ export function planAlerts(vehicles: AlertVehicle[], opts: AlertOptions): Planne
         title: `${name} · ${label}`,
         body: dueByKm
           ? `A tu ritmo ya rondarás los ${formatNumber(r.dueKm!)} km: toca hacerlo.`
-          : `Toca hoy (${dueText(r)}).`,
+          : isAnnualDeadline(r.taskId)
+            ? 'Vence hoy. Cuando lo renueves, apúntalo en Garage.'
+            : `Toca hoy (${dueText(r)}).`,
         vehicleId: vehicle.id,
       });
     }

@@ -28,6 +28,8 @@ const vehicle = z.object({
   model: text,
   plate: text,
   first_registration: isoDate.nullable(),
+  insurance_due: isoDate.nullable().default(null), // migración 5
+  road_tax_due: isoDate.nullable().default(null), // migración 5
   photo: z.string().startsWith('data:image/').max(1_000_000).nullable().default(null), // migración 2
 });
 

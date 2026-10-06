@@ -156,7 +156,8 @@ function rowFor(taskId: TaskId): Row {
 }
 
 const rows = reactive<Row[]>([
-  ...TASKS.filter((t) => t.id !== 'itv' && t.id !== 'other')
+  // ITV, seguro e impuesto van por fecha, no por intervalo; "Otro" no se programa.
+  ...TASKS.filter((t) => !['itv', 'insurance', 'road_tax', 'other'].includes(t.id))
     .map((t) => rowFor(t.id))
     // Activas primero, para que lo importante quede arriba.
     .sort((a, b) => Number(b.enabled) - Number(a.enabled)),

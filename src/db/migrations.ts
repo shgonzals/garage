@@ -130,6 +130,14 @@ export const MIGRATIONS: readonly { version: number; sql: string }[] = [
       CREATE INDEX idx_custom_tasks_vehicle ON custom_tasks (vehicle_id);
     `,
   },
+  {
+    version: 5,
+    sql: `
+      -- Vencimientos anuales: seguro e impuesto de circulación.
+      ALTER TABLE vehicles ADD COLUMN insurance_due TEXT;
+      ALTER TABLE vehicles ADD COLUMN road_tax_due TEXT;
+    `,
+  },
 ];
 
 export async function migrate(db: SqlDatabase): Promise<number> {

@@ -20,6 +20,8 @@ export type BuiltinTaskId =
   | 'tires'
   | 'battery'
   | 'itv'
+  | 'insurance'
+  | 'road_tax'
   | 'other';
 
 /** Tarea creada por el usuario para un vehículo: `custom:<uuid>`. */
@@ -43,6 +45,9 @@ export interface Vehicle extends Row {
   plate: string | null;
   /** Fecha de primera matriculación: base del cálculo de la ITV. */
   first_registration: IsoDate | null;
+  /** Próximo vencimiento del seguro y del impuesto de circulación (ver domain/deadlines.ts). */
+  insurance_due: IsoDate | null;
+  road_tax_due: IsoDate | null;
   /** Foto de perfil como data URL JPEG cuadrada y reducida (ver `lib/image.ts`). */
   photo: string | null;
 }

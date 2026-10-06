@@ -113,7 +113,10 @@
             <ion-button expand="block" fill="outline" :disabled="busy" @click="pickBackup">Importar copia</ion-button>
           </div>
           <input ref="fileInput" type="file" accept="application/json,.json" hidden @change="onBackupSelected" />
-          <ion-button expand="block" fill="clear" size="small" class="demo" :disabled="busy" @click="seed">
+          <ion-button v-if="demoLoaded" expand="block" fill="clear" size="small" color="medium" class="demo" :disabled="busy" @click="unseed">
+            Quitar datos de ejemplo
+          </ion-button>
+          <ion-button v-else expand="block" fill="clear" size="small" class="demo" :disabled="busy" @click="seed">
             Cargar datos de ejemplo
           </ion-button>
         </div>
@@ -140,7 +143,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue';
-import { seedDemoData } from '@/db/demo';
+import { isDemoVehicle, removeDemoData, seedDemoData } from '@/db/demo';
 import { currentAlertPlan } from '@/composables/useAlertSync';
 import { formatDate, formatDayTime } from '@/domain/format';
 import { saveTextFile } from '@/lib/files';
@@ -261,6 +264,30 @@ async function onBackupSelected(event: Event) {
   }
 }
 
+/** Hay vehículos de ejemplo: el botón pasa a quitarlos (y no se pueden cargar dos veces). */
+const demoLoaded = computed(() => store.vehicles.some(isDemoVehicle));
+
+async function unseed() {
+  const alert = await alertController.create({
+    header: '¿Quitar datos de ejemplo?',
+    message: 'Se borrarán CBR600RR, Scrambler y Corolla de ejemplo. Tus vehículos no se tocan.',
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      { text: 'Quitar', role: 'destructive' },
+    ],
+  });
+  await alert.present();
+  if ((await alert.onDidDismiss()).role !== 'destructive' || !store.repository) return;
+  busy.value = true;
+  try {
+    await removeDemoData(store.repository);
+    await store.reload();
+    await toast('Datos de ejemplo quitados');
+  } finally {
+    busy.value = false;
+  }
+}
+
 async function seed() {
   const alert = await alertController.create({
     header: '¿Cargar datos de ejemplo?',
@@ -276,10 +303,9 @@ async function seed() {
 
   busy.value = true;
   try {
-    await seedDemoData(store.repository);
+    const added = await seedDemoData(store.repository);
     await store.reload();
-    const toast = await toastController.create({ message: 'Datos de ejemplo cargados', duration: 1500, position: 'top' });
-    await toast.present();
+    await toast(added ? 'Datos de ejemplo cargados' : 'Los datos de ejemplo ya estaban cargados');
   } finally {
     busy.value = false;
   }

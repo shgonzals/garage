@@ -1,5 +1,6 @@
 import { addDays, differenceInCalendarDays, parseISO } from 'date-fns';
 import { toIsoDate } from './dates';
+import { ANNUAL_DEADLINES, DEADLINE_SOON_DAYS, deadlineAnchor, nextAnnualDue } from './deadlines';
 import { nextItvDate } from './itv';
 import type { EntryWithItems, IsoDate, Schedule, TaskId, Vehicle } from './types';
 
@@ -169,6 +170,33 @@ function itvReminder(input: ReminderInput): Reminder | null {
   };
 }
 
+/** Seguro o impuesto: fecha fija anual que avanza con cada renovación registrada. */
+function annualDeadlineReminder(input: ReminderInput, taskId: TaskId & ('insurance' | 'road_tax')): Reminder | null {
+  const { vehicle, entries, today } = input;
+  const renewals = entries
+    .filter((e) => !e.deleted_at && e.items.some((i) => i.task_id === taskId && !i.deleted_at))
+    .map((e) => e.done_on);
+  const dueDate = nextAnnualDue(deadlineAnchor(vehicle, taskId), renewals);
+  if (!dueDate) return null;
+
+  const intervalDays = 365;
+  const remainingDays = differenceInCalendarDays(parseISO(dueDate), parseISO(today));
+  return {
+    vehicleId: vehicle.id,
+    taskId,
+    status: classify(null, remainingDays, null, DEADLINE_SOON_DAYS),
+    last: findLastDone(entries, taskId),
+    intervalKm: null,
+    intervalDays,
+    dueKm: null,
+    dueDate,
+    remainingKm: null,
+    remainingDays,
+    progress: Math.max((intervalDays - remainingDays) / intervalDays, 0),
+    trigger: 'days',
+  };
+}
+
 export function compareReminders(a: Reminder, b: Reminder): number {
   return STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.progress - a.progress;
 }
@@ -182,6 +210,10 @@ export function computeReminders(input: ReminderInput): Reminder[] {
 
   const itv = itvReminder(input);
   if (itv) reminders.push(itv);
+  for (const d of ANNUAL_DEADLINES) {
+    const r = annualDeadlineReminder(input, d.taskId as 'insurance' | 'road_tax');
+    if (r) reminders.push(r);
+  }
 
   return reminders.sort(compareReminders);
 }

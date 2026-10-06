@@ -86,6 +86,34 @@
           <p v-if="errors.first_registration" class="g-error">{{ errors.first_registration }}</p>
         </div>
 
+        <!-- Vencimientos anuales -->
+        <h3 class="g-section-title deadlines-title">Vencimientos</h3>
+        <div class="fields">
+          <div class="row">
+            <ion-input
+              v-model="form.insurance_due"
+              label="Seguro: vence el"
+              label-placement="stacked"
+              fill="outline"
+              type="date"
+            />
+            <ion-input
+              v-model="form.road_tax_due"
+              label="Impuesto: vence el"
+              label-placement="stacked"
+              fill="outline"
+              type="date"
+            />
+          </div>
+          <p v-if="errors.insurance_due || errors.road_tax_due" class="g-error">
+            {{ errors.insurance_due || errors.road_tax_due }}
+          </p>
+          <p class="g-secondary hint">
+            Te avisamos un mes antes. Al renovar, apúntalo en el registro rápido y el siguiente vencimiento se
+            calcula solo.
+          </p>
+        </div>
+
         <ion-button type="submit" expand="block" shape="round" size="large" class="save" :disabled="saving">
           {{ id ? 'Guardar cambios' : 'Añadir al garage' }}
         </ion-button>
@@ -138,6 +166,8 @@ const form = reactive({
   model: existing?.model ?? '',
   plate: existing?.plate ?? '',
   first_registration: existing?.first_registration ?? '',
+  insurance_due: existing?.insurance_due ?? '',
+  road_tax_due: existing?.road_tax_due ?? '',
   photo: existing?.photo ?? null,
 });
 const kmText = ref(existingKm !== undefined ? String(existingKm) : '');
@@ -185,6 +215,8 @@ async function save() {
   const parsed = vehicleInputSchema.safeParse({
     ...form,
     first_registration: form.first_registration || null,
+    insurance_due: form.insurance_due || null,
+    road_tax_due: form.road_tax_due || null,
     initial_km: km === '' ? null : Number(km),
   });
   if (!parsed.success) {
@@ -302,6 +334,13 @@ async function remove() {
 .row {
   display: flex;
   gap: 12px;
+}
+.deadlines-title {
+  margin-top: 24px;
+}
+.hint {
+  margin: 0;
+  font-size: 13px;
 }
 .save {
   margin-top: 28px;

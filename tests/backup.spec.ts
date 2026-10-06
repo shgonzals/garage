@@ -59,7 +59,7 @@ describe('copia de seguridad', () => {
     const [cbr] = await target.listVehicles();
     await target.updateVehicle(cbr!.id, { ...cbr!, name: 'CBR (local)', initial_km: null });
     await target.createVehicle(
-      { name: 'Nueva', type: 'car', make: null, model: null, plate: null, first_registration: null, photo: null, initial_km: null },
+      { name: 'Nueva', type: 'car', make: null, model: null, plate: null, first_registration: null, insurance_due: null, road_tax_due: null, photo: null, initial_km: null },
       '2026-10-07',
     );
 
