@@ -1,0 +1,138 @@
+import type { TaskId, VehicleType } from './types';
+
+export interface Interval {
+  km: number | null;
+  days: number | null;
+}
+
+export interface TaskDef {
+  id: TaskId;
+  label: string;
+  emoji: string;
+  /** Intervalo por defecto por tipo de vehículo. Si falta, no se programa por defecto. */
+  defaults: Partial<Record<VehicleType, Interval>>;
+}
+
+/** Los intervalos se guardan en días; en la interfaz se muestran en años. */
+export const YEAR = 365;
+
+export const TASKS: readonly TaskDef[] = [
+  {
+    id: 'oil',
+    label: 'Aceite y filtro',
+    emoji: '🛢️',
+    defaults: {
+      motorcycle: { km: 6000, days: YEAR },
+      moped: { km: 3000, days: YEAR },
+      car: { km: 15000, days: YEAR },
+      van: { km: 15000, days: YEAR },
+    },
+  },
+  {
+    id: 'chain_lube',
+    label: 'Engrase de cadena',
+    emoji: '⛓️',
+    defaults: { motorcycle: { km: 500, days: null }, moped: { km: 500, days: null } },
+  },
+  {
+    id: 'chain_tension',
+    label: 'Tensión de cadena',
+    emoji: '🔧',
+    defaults: { motorcycle: { km: 1000, days: null }, moped: { km: 1000, days: null } },
+  },
+  {
+    id: 'brake_fluid',
+    label: 'Líquido de frenos',
+    emoji: '🩸',
+    defaults: {
+      motorcycle: { km: null, days: 2 * YEAR },
+      moped: { km: null, days: 2 * YEAR },
+      car: { km: null, days: 2 * YEAR },
+      van: { km: null, days: 2 * YEAR },
+    },
+  },
+  {
+    id: 'coolant',
+    label: 'Refrigerante',
+    emoji: '❄️',
+    defaults: {
+      motorcycle: { km: null, days: 2 * YEAR },
+      car: { km: null, days: 4 * YEAR },
+      van: { km: null, days: 4 * YEAR },
+    },
+  },
+  {
+    id: 'air_filter',
+    label: 'Filtro de aire',
+    emoji: '🌬️',
+    defaults: {
+      motorcycle: { km: 12000, days: 2 * YEAR },
+      moped: { km: 6000, days: 2 * YEAR },
+      car: { km: 30000, days: 2 * YEAR },
+      van: { km: 30000, days: 2 * YEAR },
+    },
+  },
+  {
+    id: 'spark_plugs',
+    label: 'Bujías',
+    emoji: '⚡',
+    defaults: {
+      motorcycle: { km: 12000, days: null },
+      moped: { km: 6000, days: null },
+      car: { km: 60000, days: null },
+    },
+  },
+  {
+    id: 'valves',
+    label: 'Reglaje de válvulas',
+    emoji: '⚙️',
+    defaults: { motorcycle: { km: 24000, days: null } },
+  },
+  {
+    id: 'timing_belt',
+    label: 'Correa de distribución',
+    emoji: '🔗',
+    defaults: { car: { km: 120000, days: 10 * YEAR }, van: { km: 120000, days: 10 * YEAR } },
+  },
+  { id: 'brake_pads', label: 'Pastillas de freno', emoji: '🛑', defaults: {} },
+  { id: 'tires', label: 'Neumáticos', emoji: '🛞', defaults: {} },
+  { id: 'battery', label: 'Batería', emoji: '🔋', defaults: {} },
+  // La ITV no usa schedule: su próxima fecha la calcula domain/itv.ts.
+  { id: 'itv', label: 'ITV', emoji: '📋', defaults: {} },
+  { id: 'other', label: 'Otro', emoji: '📝', defaults: {} },
+];
+
+const BY_ID = new Map(TASKS.map((t) => [t.id, t]));
+
+export function getTask(id: TaskId): TaskDef {
+  const task = BY_ID.get(id);
+  if (!task) throw new Error(`Tarea desconocida: ${id}`);
+  return task;
+}
+
+export function isTaskId(value: string): value is TaskId {
+  return BY_ID.has(value as TaskId);
+}
+
+/** Tareas que se programan automáticamente al dar de alta un vehículo de este tipo. */
+export function defaultSchedulesFor(type: VehicleType): { taskId: TaskId; interval: Interval }[] {
+  return TASKS.flatMap((t) => {
+    const interval = t.defaults[type];
+    return interval ? [{ taskId: t.id, interval }] : [];
+  });
+}
+
+export const VEHICLE_TYPES: readonly { id: VehicleType; label: string; emoji: string }[] = [
+  { id: 'motorcycle', label: 'Moto / Quad', emoji: '🏍️' },
+  { id: 'moped', label: 'Ciclomotor', emoji: '🛵' },
+  { id: 'car', label: 'Turismo', emoji: '🚗' },
+  { id: 'van', label: 'Furgoneta (N1)', emoji: '🚐' },
+];
+
+export function vehicleTypeLabel(type: VehicleType): string {
+  return VEHICLE_TYPES.find((v) => v.id === type)?.label ?? type;
+}
+
+export function vehicleTypeEmoji(type: VehicleType): string {
+  return VEHICLE_TYPES.find((v) => v.id === type)?.emoji ?? '🚗';
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+# generado por scripts/copy-sql-wasm.mjs
+public/assets/sql-wasm.wasm
+# plataformas nativas: se generan con `npx cap add android|ios`
+android/
+ios/

@@ -1,0 +1,46 @@
+{
+  "name": "garage",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "App multiplataforma para llevar el mantenimiento de motos y vehículos personales.",
+  "scripts": {
+    "postinstall": "node scripts/copy-sql-wasm.mjs",
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cap:sync": "npm run build && cap sync"
+  },
+  "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.1",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.2",
+    "@ionic/vue": "^9.0.6",
+    "@ionic/vue-router": "^9.0.6",
+    "date-fns": "^4.4.0",
+    "ionicons": "^8.1.0",
+    "jeep-sqlite": "^2.8.0",
+    "pinia": "^4.0.3",
+    "sql.js": "1.11.0",
+    "uuid": "^14.0.2",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@types/node": "^26.6.4",
+    "@types/sql.js": "^1.4.11",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/test-utils": "^2.5.1",
+    "jsdom": "^29.1.1",
+    "typescript": "~5.9",
+    "vite": "^8.3.3",
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.12"
+  }
+}

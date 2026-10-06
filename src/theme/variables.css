@@ -1,0 +1,306 @@
+/*
+ * Diseño "Sesame moderno": limpio, premium, con modo oscuro completo.
+ * Los tokens `--g-*` son nuestros; abajo se mapean a las variables de Ionic.
+ * El modo oscuro se activa con la clase `ion-palette-dark` en <html> (ver theme.ts).
+ */
+
+:root {
+  --g-bg: #ffffff;
+  --g-surface: #f8fafc;
+  --g-surface-secondary: #f3f4f6;
+  --g-text: #111827;
+  --g-text-secondary: #64748b;
+  --g-text-muted: #94a3b8;
+  --g-border: #e2e8f0;
+  --g-border-strong: #d1d5db;
+
+  --g-primary: #6366f1;
+  --g-secondary: #ec4899;
+  --g-danger: #ef4444;
+  --g-warning: #f59e0b;
+  --g-success: #10b981;
+  --g-neutral: #94a3b8;
+
+  --g-bg-danger: #fee2e2;
+  --g-text-danger: #dc2626;
+  --g-border-danger: #fecaca;
+  --g-bg-warning: #ffedd5;
+  --g-text-warning: #ea580c;
+  --g-border-warning: #fed7aa;
+  --g-bg-success: #dcfce7;
+  --g-text-success: #15803d;
+  --g-border-success: #bbf7d0;
+  --g-bg-neutral: #f1f5f9;
+  --g-text-neutral: #475569;
+  --g-border-neutral: #e2e8f0;
+
+  --g-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --g-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --g-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  --g-radius-md: 12px;
+  --g-radius-lg: 16px;
+  --g-transition: 200ms ease;
+
+  /* Ionic */
+  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ion-background-color: var(--g-bg);
+  --ion-background-color-rgb: 255, 255, 255;
+  --ion-text-color: var(--g-text);
+  --ion-text-color-rgb: 17, 24, 39;
+  --ion-toolbar-background: var(--g-bg);
+  --ion-tab-bar-background: var(--g-bg);
+  --ion-item-background: var(--g-bg);
+  --ion-border-color: var(--g-border);
+
+  --ion-color-primary: #6366f1;
+  --ion-color-primary-rgb: 99, 102, 241;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #575ad4;
+  --ion-color-primary-tint: #7375f2;
+
+  --ion-color-secondary: #ec4899;
+  --ion-color-secondary-rgb: 236, 72, 153;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #d03f87;
+  --ion-color-secondary-tint: #ee5aa3;
+
+  --ion-color-success: #10b981;
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0ea371;
+  --ion-color-success-tint: #28c08e;
+
+  --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #d88b0a;
+  --ion-color-warning-tint: #f6a823;
+
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f15757;
+}
+
+:root.ion-palette-dark {
+  --g-bg: #0f172a;
+  --g-surface: #1e293b;
+  --g-surface-secondary: #0f172a;
+  --g-text: #f1f5f9;
+  --g-text-secondary: #cbd5e1;
+  --g-text-muted: #94a3b8;
+  --g-border: #334155;
+  --g-border-strong: #475569;
+
+  --g-bg-danger: #450a0a;
+  --g-text-danger: #fca5a5;
+  --g-border-danger: #991b1b;
+  --g-bg-warning: #431407;
+  --g-text-warning: #fdba74;
+  --g-border-warning: #9a3412;
+  --g-bg-success: #052e16;
+  --g-text-success: #86efac;
+  --g-border-success: #047857;
+  --g-bg-neutral: #1e293b;
+  --g-text-neutral: #cbd5e1;
+  --g-border-neutral: #334155;
+
+  --g-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --g-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --g-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+  --ion-background-color: var(--g-bg);
+  --ion-background-color-rgb: 15, 23, 42;
+  --ion-text-color: var(--g-text);
+  --ion-text-color-rgb: 241, 245, 249;
+  --ion-toolbar-background: var(--g-bg);
+  --ion-tab-bar-background: var(--g-bg);
+  --ion-item-background: var(--g-surface);
+  --ion-card-background: var(--g-surface);
+  --ion-border-color: var(--g-border);
+}
+
+/* ── Utilidades compartidas ─────────────────────────────────── */
+
+ion-toolbar {
+  --border-color: var(--g-border);
+}
+
+.g-section {
+  margin: 24px 0 8px;
+}
+
+.g-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--g-text-secondary);
+  margin: 0 0 10px;
+}
+
+.g-card {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: var(--g-radius-lg);
+  box-shadow: var(--g-shadow-md);
+  padding: 16px;
+}
+
+.g-muted {
+  color: var(--g-text-muted);
+}
+
+.g-secondary {
+  color: var(--g-text-secondary);
+}
+
+.g-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--g-text-secondary);
+}
+
+.g-empty .g-empty-emoji {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.g-empty h2 {
+  color: var(--g-text);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.g-error {
+  color: var(--g-text-danger);
+  font-size: 12px;
+  margin: 4px 16px 0;
+}
+
+/* Ionic ignora `fill="outline"` en modo iOS: le damos nosotros el borde. */
+ion-input.ios.input-fill-outline,
+ion-textarea.ios.textarea-fill-outline {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border: 1px solid var(--g-border-strong);
+  border-radius: var(--g-radius-md);
+  background: var(--g-surface);
+  transition: border-color var(--g-transition), box-shadow var(--g-transition);
+}
+ion-input.ios.input-fill-outline .input-bottom {
+  border-top: none;
+  padding-bottom: 8px;
+}
+ion-input.ios.input-fill-outline.has-focus,
+ion-textarea.ios.textarea-fill-outline.has-focus {
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+}
+
+/* ── Escritorio (≥ 992px, mismo corte que ion-split-pane "lg") ─
+ * El menú lateral (SideMenu) sustituye a las pestañas y al botón ⚡ flotante,
+ * y el contenido se centra con un ancho máximo para no estirarse.
+ * `.g-narrow` en ion-page: formularios, que se leen mejor estrechos. */
+
+@media (max-width: 991.98px) {
+  .g-desktop-only {
+    display: none !important;
+  }
+}
+
+/* En móvil, una columna con el espaciado propio de cada tarjeta; en escritorio, rejilla. */
+.g-grid {
+  display: grid;
+}
+
+@media (min-width: 992px) {
+  .g-mobile-only,
+  ion-tab-bar,
+  ion-fab {
+    display: none;
+  }
+
+  /* Ancho máximo del contenido; `.g-narrow` va en <ion-page> para que cabecera y contenido coincidan. */
+  ion-page,
+  .ion-page {
+    --g-page-width: 1040px;
+  }
+  .ion-page.g-narrow {
+    --g-page-width: 680px;
+  }
+  ion-content.ion-padding {
+    --padding-start: max(32px, calc((100% - var(--g-page-width)) / 2));
+    --padding-end: max(32px, calc((100% - var(--g-page-width)) / 2));
+    --padding-top: 28px;
+    --padding-bottom: 48px;
+  }
+  ion-header ion-toolbar {
+    --padding-start: max(16px, calc((100% - var(--g-page-width)) / 2 + 16px));
+    --padding-end: max(16px, calc((100% - var(--g-page-width)) / 2 + 16px));
+    --min-height: 60px;
+  }
+  ion-header ion-title {
+    font-size: 18px;
+  }
+
+  /* El título grande que se colapsa al hacer scroll es un patrón de iOS:
+     en escritorio, título normal en la barra desde el principio. */
+  ion-header.header-collapse-condense {
+    display: none;
+  }
+  ion-header.header-collapse-condense-inactive ion-title {
+    opacity: 1 !important;
+  }
+
+  ion-split-pane {
+    --side-width: 240px;
+    --side-min-width: 240px;
+    --side-max-width: 240px;
+  }
+  ion-split-pane.side-collapsed {
+    --side-width: 64px;
+    --side-min-width: 64px;
+    --side-max-width: 64px;
+  }
+
+  /* Los botones de la barra en iOS (17px) están pensados para el pulgar: en escritorio, más discretos. */
+  ion-toolbar ion-button {
+    font-size: 15px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+  }
+  ion-toolbar ion-button.button-solid {
+    height: 34px;
+    font-size: 14px;
+    font-weight: 600;
+    --padding-start: 14px;
+    --padding-end: 16px;
+  }
+  ion-toolbar ion-button.button-solid ion-icon {
+    font-size: 16px;
+  }
+  ion-toolbar ion-back-button {
+    --icon-font-size: 24px;
+  }
+
+  .g-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .g-grid > * {
+    margin-bottom: 0 !important;
+  }
+
+  .g-section-title {
+    font-size: 12px;
+  }
+}

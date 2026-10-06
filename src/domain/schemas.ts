@@ -1,0 +1,73 @@
+import { z } from 'zod';
+import { TASKS, VEHICLE_TYPES } from './tasks';
+import type { TaskId, VehicleType } from './types';
+
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida')
+  .refine((s) => !Number.isNaN(Date.parse(s)), 'Fecha no válida');
+
+const optionalText = z
+  .string()
+  .trim()
+  .transform((s) => (s === '' ? null : s))
+  .nullable();
+
+const km = z.number({ error: 'Introduce los km' }).int('Sin decimales').min(0, 'No puede ser negativo').max(5_000_000);
+
+const vehicleTypes = VEHICLE_TYPES.map((v) => v.id) as [VehicleType, ...VehicleType[]];
+const taskIds = TASKS.map((t) => t.id) as [TaskId, ...TaskId[]];
+
+export const vehicleInputSchema = z.object({
+  name: z.string().trim().min(1, 'Ponle un nombre').max(60),
+  type: z.enum(vehicleTypes),
+  make: optionalText,
+  model: optionalText,
+  plate: optionalText.transform((s) => s?.toUpperCase().replace(/\s+/g, '') ?? null),
+  first_registration: isoDate.nullable(),
+  /** Data URL ya reducida en el cliente; el tope evita meter una foto original en la BD por error. */
+  photo: z
+    .string()
+    .startsWith('data:image/', 'Imagen no válida')
+    .max(1_000_000, 'La foto es demasiado grande')
+    .nullable()
+    .default(null),
+  /** Solo en el alta: lectura inicial del odómetro. */
+  initial_km: km.nullable(),
+});
+export type VehicleInput = z.input<typeof vehicleInputSchema>;
+export type VehicleData = z.output<typeof vehicleInputSchema>;
+
+export const quickLogSchema = z.object({
+  vehicle_id: z.string().min(1, 'Elige un vehículo'),
+  done_on: isoDate,
+  odometer_km: km.nullable(),
+  task_ids: z.array(z.enum(taskIds)).min(1, 'Marca al menos una tarea'),
+  /** Importe en euros tal y como lo escribe el usuario; se guarda en céntimos. */
+  cost: z.number().min(0).max(1_000_000).nullable(),
+  notes: optionalText,
+});
+export type QuickLogInput = z.input<typeof quickLogSchema>;
+export type QuickLogData = z.output<typeof quickLogSchema>;
+
+export const scheduleInputSchema = z.object({
+  interval_km: z.number().int().positive().nullable(),
+  interval_days: z.number().int().positive().nullable(),
+  enabled: z.boolean(),
+});
+export type ScheduleInput = z.output<typeof scheduleInputSchema>;
+
+/** Euros (posible float del input) → céntimos enteros. */
+export function eurosToCents(euros: number): number {
+  return Math.round(euros * 100);
+}
+
+/** Primer mensaje de error por campo, para pintar bajo cada input. */
+export function fieldErrors(error: z.ZodError): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = String(issue.path[0] ?? '_');
+    out[key] ??= issue.message;
+  }
+  return out;
+}
