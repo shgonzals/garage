@@ -48,7 +48,7 @@ src/
     demo.ts        Datos de ejemplo
   stores/garage.ts Estado (Pinia) y urgencias derivadas
   views/           Garage, Detalle, Registro rápido, Recordatorios, Plan, Ajustes
-  theme/           Tokens "Sesame moderno" + modo oscuro
+  theme/           Estilo "Taller + Cuadro": 5 temas de color × claro/oscuro (palettes.css)
 tests/             Vitest (sql.js en memoria para el repositorio)
 ```
 
@@ -65,6 +65,10 @@ tests/             Vitest (sql.js en memoria para el repositorio)
 | ITV sin historial en vehículo antiguo = "sin historial" | No dar por vencida una ITV que seguramente está pasada |
 | `sql.js` fijado a **1.11.0** | Debe coincidir con la versión que `jeep-sqlite@2.8.0` lleva empaquetada; si no, el `.wasm` no carga |
 | Ionic en modo `ios` en todas las plataformas | Estética Sesame homogénea |
+| Temas = paletas de tokens (`data-palette` en `<html>`) | Cambiar de tema no toca componentes; cada tema define claro y oscuro |
+| Acento de relleno ≠ acento de texto | Amarillo, cian o rosa no se leen sobre blanco: en claro, el texto usa una versión más oscura |
+| Cuadro de instrumentos siempre oscuro | En modo claro sigue siendo un panel incrustado: el acento luce igual |
+| Fuentes locales (`@fontsource`) | Offline-first: sin depender de Google Fonts |
 
 ## Roadmap
 

@@ -46,6 +46,8 @@ export interface OdometerReading extends Row {
   km: number;
   read_on: IsoDate;
   source: 'manual' | 'entry';
+  /** Registro que generó la lectura (`source = 'entry'`): se edita y borra con él. */
+  entry_id: string | null;
 }
 
 export interface Entry extends Row {

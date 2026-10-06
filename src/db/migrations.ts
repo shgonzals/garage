@@ -98,6 +98,22 @@ export const MIGRATIONS: readonly { version: number; sql: string }[] = [
       ALTER TABLE vehicles ADD COLUMN photo TEXT;
     `,
   },
+  {
+    version: 3,
+    sql: `
+      -- Enlace lectura → registro, para que editar o borrar un registro corrija también los km.
+      ALTER TABLE odometer_readings ADD COLUMN entry_id TEXT REFERENCES entries(id);
+      CREATE INDEX idx_odometer_entry ON odometer_readings (entry_id);
+      -- Datos previos: createEntry insertaba registro y lectura en el mismo batch, con el mismo created_at.
+      UPDATE odometer_readings SET entry_id = (
+        SELECT e.id FROM entries e
+        WHERE e.vehicle_id = odometer_readings.vehicle_id
+          AND e.created_at = odometer_readings.created_at
+          AND e.odometer_km = odometer_readings.km
+        LIMIT 1
+      ) WHERE source = 'entry';
+    `,
+  },
 ];
 
 export async function migrate(db: SqlDatabase): Promise<number> {

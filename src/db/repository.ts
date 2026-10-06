@@ -105,6 +105,7 @@ export class GarageRepository {
     readOn: IsoDate,
     source: OdometerReading['source'],
     ts: string,
+    entryId: string | null = null,
   ): SqlStatement {
     return insert('odometer_readings', {
       id: this.newId(),
@@ -112,6 +113,7 @@ export class GarageRepository {
       km,
       read_on: readOn,
       source,
+      entry_id: entryId,
       created_at: ts,
       updated_at: ts,
       deleted_at: null,
@@ -121,6 +123,24 @@ export class GarageRepository {
   async addOdometerReading(vehicleId: string, km: number, readOn: IsoDate): Promise<void> {
     const s = this.readingInsert(vehicleId, km, readOn, 'manual', this.now());
     await this.db.run(s.sql, s.params);
+  }
+
+  /** Lecturas de un vehículo, la más reciente primero. */
+  listReadings(vehicleId: string): Promise<OdometerReading[]> {
+    return this.db.query<OdometerReading>(
+      `SELECT * FROM odometer_readings WHERE vehicle_id = ? AND deleted_at IS NULL
+       ORDER BY read_on DESC, km DESC, created_at DESC`,
+      [vehicleId],
+    );
+  }
+
+  /** Borra una lectura manual. Las de un registro se corrigen editando o borrando el registro. */
+  async deleteReading(id: string): Promise<void> {
+    const ts = this.now();
+    await this.db.run(
+      'UPDATE odometer_readings SET deleted_at = ?, updated_at = ? WHERE id = ? AND entry_id IS NULL',
+      [ts, ts, id],
+    );
   }
 
   /** Km actuales por vehículo = lectura máxima registrada. */
@@ -156,6 +176,33 @@ export class GarageRepository {
     return entries.map((e) => ({ ...e, items: byEntry.get(e.id) ?? [] }));
   }
 
+  private itemInserts(entryId: string, taskIds: TaskId[], ts: string): SqlStatement[] {
+    return taskIds.map((taskId) =>
+      insert('entry_items', {
+        id: this.newId(),
+        entry_id: entryId,
+        task_id: taskId,
+        notes: null,
+        created_at: ts,
+        updated_at: ts,
+        deleted_at: null,
+      }),
+    );
+  }
+
+  private softDeleteEntryChildren(entryId: string, ts: string): SqlStatement[] {
+    return [
+      {
+        sql: 'UPDATE entry_items SET deleted_at = ?, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL',
+        params: [ts, ts, entryId],
+      },
+      {
+        sql: 'UPDATE odometer_readings SET deleted_at = ?, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL',
+        params: [ts, ts, entryId],
+      },
+    ];
+  }
+
   /** Registro rápido: entry + tareas + lectura de km, en una transacción. */
   async createEntry(data: QuickLogData): Promise<string> {
     const ts = this.now();
@@ -173,33 +220,47 @@ export class GarageRepository {
         updated_at: ts,
         deleted_at: null,
       }),
-      ...data.task_ids.map((taskId) =>
-        insert('entry_items', {
-          id: this.newId(),
-          entry_id: entryId,
-          task_id: taskId,
-          notes: null,
-          created_at: ts,
-          updated_at: ts,
-          deleted_at: null,
-        }),
-      ),
+      ...this.itemInserts(entryId, data.task_ids, ts),
     ];
     if (data.odometer_km !== null) {
-      statements.push(this.readingInsert(data.vehicle_id, data.odometer_km, data.done_on, 'entry', ts));
+      statements.push(this.readingInsert(data.vehicle_id, data.odometer_km, data.done_on, 'entry', ts, entryId));
     }
     await this.db.batch(statements);
     return entryId;
   }
 
+  /** Corrige un registro: reemplaza sus tareas y su lectura de km, en una transacción. */
+  async updateEntry(id: string, data: QuickLogData): Promise<void> {
+    const ts = this.now();
+    const statements: SqlStatement[] = [
+      {
+        sql: `UPDATE entries SET vehicle_id = ?, done_on = ?, odometer_km = ?, cost_cents = ?, notes = ?, updated_at = ?
+              WHERE id = ? AND deleted_at IS NULL`,
+        params: [
+          data.vehicle_id,
+          data.done_on,
+          data.odometer_km,
+          data.cost !== null ? eurosToCents(data.cost) : null,
+          data.notes,
+          ts,
+          id,
+        ],
+      },
+      ...this.softDeleteEntryChildren(id, ts),
+      ...this.itemInserts(id, data.task_ids, ts),
+    ];
+    if (data.odometer_km !== null) {
+      statements.push(this.readingInsert(data.vehicle_id, data.odometer_km, data.done_on, 'entry', ts, id));
+    }
+    await this.db.batch(statements);
+  }
+
+  /** Borra el registro, sus tareas y la lectura de km que generó. */
   async deleteEntry(id: string): Promise<void> {
     const ts = this.now();
     await this.db.batch([
       { sql: 'UPDATE entries SET deleted_at = ?, updated_at = ? WHERE id = ?', params: [ts, ts, id] },
-      {
-        sql: 'UPDATE entry_items SET deleted_at = ?, updated_at = ? WHERE entry_id = ? AND deleted_at IS NULL',
-        params: [ts, ts, id],
-      },
+      ...this.softDeleteEntryChildren(id, ts),
     ]);
   }
 

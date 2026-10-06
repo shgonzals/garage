@@ -30,26 +30,31 @@
       </div>
 
       <template v-else>
-        <!-- Cabecera: odómetro -->
-        <div class="g-card hero">
-          <VehicleAvatar :photo="vehicle.photo" :type="vehicle.type" :size="isDesktop ? 80 : 64" />
-          <div class="hero-info">
-            <div class="hero-sub">
-              {{ [vehicle.make, vehicle.model].filter(Boolean).join(' ') || vehicleTypeLabel(vehicle.type) }}
+        <!-- Identidad -->
+        <div class="identity">
+          <VehicleAvatar :photo="vehicle.photo" :type="vehicle.type" :size="isDesktop ? 64 : 52" />
+          <div class="identity-info">
+            <div class="identity-name">
+              {{ [vehicle.make, vehicle.model].filter(Boolean).join(' ') || vehicle.name }}
             </div>
-            <div v-if="vehicle.plate" class="plate">{{ vehicle.plate }}</div>
+            <div class="identity-meta">
+              <span v-if="vehicle.plate" class="plate">{{ vehicle.plate }}</span>
+              <span>{{ vehicleTypeLabel(vehicle.type) }}</span>
+            </div>
           </div>
-          <button type="button" class="odometer" @click="promptOdometer">
-            <span class="odometer-km">{{ km !== null ? formatNumber(km) : '—' }}</span>
-            <span class="odometer-unit">km · actualizar</span>
-          </button>
+        </div>
+
+        <!-- Cuadro de instrumentos: odómetro + próximo mantenimiento + testigos -->
+        <div class="dash">
+          <OdometerCluster :km="km" :next="nextReminder" @update="promptOdometer" />
+          <StatusLights v-if="reminders.length > 0" class="lights" :reminders="reminders" />
         </div>
 
         <div class="columns">
           <!-- Urgencias -->
           <section class="g-section">
             <div class="section-head">
-              <h3 class="g-section-title">Urgencias</h3>
+              <h3 class="g-section-title g-hazard">Urgencias</h3>
               <ion-button fill="clear" size="small" :router-link="`/vehicles/${id}/plan`">Plan</ion-button>
             </div>
             <p v-if="reminders.length === 0" class="g-secondary">
@@ -69,29 +74,36 @@
 
           <!-- Historial -->
           <section class="g-section">
-            <h3 class="g-section-title">Historial</h3>
+            <h3 class="g-section-title">Partes de trabajo</h3>
             <p v-if="entries.length === 0" class="g-secondary">
               Aún no hay registros. Pulsa ⚡ para apuntar el primero.
             </p>
-            <ion-list v-else lines="none" class="timeline">
+            <div v-else class="work work-head" aria-hidden="true">
+              <span>Fecha</span>
+              <span>Km</span>
+              <span>Trabajo</span>
+            </div>
+            <ion-list v-if="entries.length > 0" lines="none" class="timeline">
               <ion-item-sliding v-for="e in entries" :key="e.id">
                 <ion-item class="timeline-item">
-                  <div class="timeline-body">
-                    <div class="timeline-date">
-                      {{ formatDate(e.done_on) }}
-                      <span v-if="e.odometer_km !== null" class="g-muted"> · {{ formatKm(e.odometer_km) }}</span>
-                    </div>
-                    <div class="chips">
-                      <span v-for="item in e.items" :key="item.id" class="chip">
-                        {{ getTask(item.task_id).emoji }} {{ getTask(item.task_id).label }}
+                  <!-- Tocar el registro lo abre para corregirlo. -->
+                  <button
+                    type="button"
+                    class="work timeline-body"
+                    :aria-label="`Editar registro del ${formatDate(e.done_on)}`"
+                    @click="router.push(`/entries/${e.id}/edit`)"
+                  >
+                    <span class="g-mono">{{ formatNumericDate(e.done_on) }}</span>
+                    <span class="g-mono">{{ e.odometer_km !== null ? formatNumber(e.odometer_km) : '—' }}</span>
+                    <span class="work-desc">
+                      <span class="work-tasks">{{ e.items.map((i) => getTask(i.task_id).label).join(', ') }}</span>
+                      <span v-if="e.cost_cents !== null || e.notes" class="work-meta">
+                        <span v-if="e.cost_cents !== null" class="g-mono">{{ formatMoney(e.cost_cents, e.currency) }}</span>
+                        <span v-if="e.cost_cents !== null && e.notes"> · </span>
+                        <span v-if="e.notes">{{ e.notes }}</span>
                       </span>
-                    </div>
-                    <div v-if="e.cost_cents !== null || e.notes" class="timeline-meta g-secondary">
-                      <span v-if="e.cost_cents !== null">{{ formatMoney(e.cost_cents, e.currency) }}</span>
-                      <span v-if="e.cost_cents !== null && e.notes"> · </span>
-                      <span v-if="e.notes">{{ e.notes }}</span>
-                    </div>
-                  </div>
+                    </span>
+                  </button>
                   <!-- En escritorio no hay gesto de deslizar: botón visible al pasar el ratón. -->
                   <ion-button
                     slot="end"
@@ -143,17 +155,21 @@ import {
   IonTitle,
   IonToolbar,
   toastController,
+  useIonRouter,
 } from '@ionic/vue';
 import { flash, trashOutline } from 'ionicons/icons';
+import OdometerCluster from '@/components/OdometerCluster.vue';
+import StatusLights from '@/components/StatusLights.vue';
 import UrgencyCard from '@/components/UrgencyCard.vue';
 import VehicleAvatar from '@/components/VehicleAvatar.vue';
 import { useDesktop } from '@/composables/useDesktop';
-import { formatDate, formatKm, formatMoney, formatNumber } from '@/domain/format';
+import { formatDate, formatKm, formatMoney, formatNumber, formatNumericDate } from '@/domain/format';
 import { getTask, vehicleTypeLabel } from '@/domain/tasks';
 import { useGarageStore } from '@/stores/garage';
 
 const props = defineProps<{ id: string }>();
 const store = useGarageStore();
+const router = useIonRouter();
 
 const isDesktop = useDesktop();
 const vehicle = computed(() => store.vehicleById.get(props.id) ?? null);
@@ -166,6 +182,8 @@ const visibleReminders = computed(() =>
   showAll.value ? reminders.value : reminders.value.filter((r) => r.status !== 'unknown'),
 );
 const hiddenCount = computed(() => reminders.value.length - visibleReminders.value.length);
+/** El más urgente con datos: lo que marca el arco del cuadro. */
+const nextReminder = computed(() => reminders.value.find((r) => r.status !== 'unknown') ?? null);
 
 async function promptOdometer() {
   const alert = await alertController.create({
@@ -178,13 +196,19 @@ async function promptOdometer() {
         attributes: { inputmode: 'numeric', min: 0 },
       },
     ],
+    message: '¿Te equivocaste antes? Corrígelo en el historial de km.',
     buttons: [
+      { text: 'Historial', role: 'history' },
       { text: 'Cancelar', role: 'cancel' },
       { text: 'Guardar', role: 'confirm' },
     ],
   });
   await alert.present();
   const { role, data } = await alert.onDidDismiss<{ values: { km: string } }>();
+  if (role === 'history') {
+    router.push(`/vehicles/${props.id}/km`);
+    return;
+  }
   if (role !== 'confirm') return;
 
   const value = Number(data?.values.km);
@@ -193,7 +217,7 @@ async function promptOdometer() {
     return;
   }
   if (km.value !== null && value < km.value) {
-    await toast(`Los km no pueden bajar de ${formatKm(km.value)}`, 'danger');
+    await toast(`Los km no pueden bajar de ${formatKm(km.value)}. Si es un error, corrígelo en el historial de km.`, 'danger');
     return;
   }
   await store.addReading(props.id, value);
@@ -202,6 +226,7 @@ async function promptOdometer() {
 async function removeEntry(entryId: string) {
   const alert = await alertController.create({
     header: '¿Borrar registro?',
+    message: 'También se quitarán los km que apuntaste en él.',
     buttons: [
       { text: 'Cancelar', role: 'cancel' },
       { text: 'Borrar', role: 'destructive' },
@@ -219,58 +244,76 @@ async function toast(message: string, color: string) {
 </script>
 
 <style scoped>
-.hero {
+/* Identidad */
+.identity {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
-.hero-info {
-  flex: 1;
+.identity-info {
   min-width: 0;
 }
-.hero-sub {
-  font-weight: 600;
+.identity-name {
+  font-family: var(--g-font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }
-.plate {
-  display: inline-block;
+.identity-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 4px;
-  padding: 2px 8px;
-  border: 1px solid var(--g-border-strong);
-  border-radius: 6px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--g-text-muted);
+}
+/* Placa de matrícula: invertida respecto al fondo, como una chapa. */
+.plate {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--g-text);
+  color: var(--g-bg);
+  font-family: var(--g-font-mono);
+  font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.06em;
-  color: var(--g-text-secondary);
 }
-.odometer {
-  font: inherit;
-  background: none;
-  border: none;
-  color: var(--g-text);
-  text-align: right;
-  cursor: pointer;
-  padding: 4px;
+
+/* Cuadro */
+.dash {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.odometer-km {
-  display: block;
-  font-size: 22px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.odometer-unit {
-  font-size: 12px;
-  color: var(--ion-color-primary);
-}
+
 .section-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
 }
 .section-head .g-section-title {
+  flex: 1;
   margin: 0;
 }
 
-/* Timeline */
+/* Partes de trabajo: tabla de fecha · km · trabajo */
+.work {
+  display: grid;
+  grid-template-columns: 72px 64px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: baseline;
+}
+.work-head {
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--g-border-strong);
+  font-family: var(--g-font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--g-text-muted);
+}
 .timeline {
   background: transparent;
   padding: 0;
@@ -279,65 +322,50 @@ async function toast(message: string, color: string) {
   --background: transparent;
   --padding-start: 0;
   --inner-padding-end: 0;
+  --min-height: 0;
+  border-bottom: 1px solid var(--g-border);
 }
 .timeline-body {
-  position: relative;
-  padding: 0 0 20px 28px;
   width: 100%;
-}
-.timeline-body::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 5px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ion-color-primary);
-  box-shadow: 0 0 0 3px var(--g-bg);
-}
-.timeline-body::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 20px;
-  bottom: 0;
-  width: 2px;
-  background: var(--g-border);
-}
-ion-item-sliding:last-child .timeline-body::after {
-  display: none;
-}
-.timeline-date {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.chip {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--g-surface-secondary);
-  border: 1px solid var(--g-border);
-}
-.timeline-meta {
-  margin-top: 6px;
+  padding: 11px 0;
+  font: inherit;
   font-size: 13px;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.timeline-body:hover .work-tasks {
+  color: var(--g-accent-text);
+}
+.work-desc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.work-tasks {
+  font-size: 14px;
+  font-weight: 500;
+}
+.work-meta {
+  font-size: 12px;
+  color: var(--g-text-muted);
 }
 
 @media (min-width: 992px) {
-  .hero {
-    padding: 20px 24px;
+  /* Cuadro a la izquierda, testigos apilados a la derecha. */
+  .dash {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 16px;
   }
-  .odometer-km {
-    font-size: 28px;
+  .dash > .lights {
+    grid-template-columns: 1fr;
+    align-content: center;
   }
-  /* Urgencias a la izquierda, historial a la derecha. */
+  /* Urgencias a la izquierda, partes de trabajo a la derecha. */
   .columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -345,7 +373,7 @@ ion-item-sliding:last-child .timeline-body::after {
     align-items: start;
   }
   .delete {
-    align-self: flex-start;
+    align-self: center;
     margin: 0;
     opacity: 0;
     transition: opacity var(--g-transition);

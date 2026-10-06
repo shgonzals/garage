@@ -23,6 +23,11 @@ export function formatDate(iso: IsoDate): string {
   return format(parseISO(iso), 'd MMM yyyy', { locale: es }).replace('.', '');
 }
 
+/** `2026-08-18` → `18/08/26` (tabla de partes de trabajo) */
+export function formatNumericDate(iso: IsoDate): string {
+  return format(parseISO(iso), 'dd/MM/yy');
+}
+
 /** `2026-08-18` → `18 ago` */
 export function formatShortDate(iso: IsoDate): string {
   return format(parseISO(iso), 'd MMM', { locale: es }).replace('.', '');
@@ -100,4 +105,34 @@ export function summaryText(s: VehicleSummary): string {
   }
   if (top.status === 'ok') return 'Al día';
   return 'Sin historial';
+}
+
+/**
+ * Cifra del indicador circular: lo que queda (o lo que ya se ha pasado, con "+") en la
+ * dimensión que manda, y cuánto del intervalo se ha consumido (0–1) para el arco.
+ */
+export function reminderGauge(r: Reminder): { value: string; unit: string; fill: number } {
+  if (r.status === 'unknown') return { value: '—', unit: '', fill: 0 };
+  // En el círculo caben ~5 caracteres: a partir de 10.000, en miles ("103k"). El texto de la tarjeta da la cifra exacta.
+  const compact = (n: number) => (n >= 10_000 ? `${Math.round(n / 1000)}k` : formatNumber(n));
+  const days = (n: number) => (n === 1 ? 'día' : 'días');
+  if (r.status === 'overdue') {
+    if (r.remainingKm !== null && r.remainingKm < 0) return { value: `+${compact(-r.remainingKm)}`, unit: 'km', fill: 1 };
+    if (r.remainingDays !== null && r.remainingDays < 0) {
+      return { value: `+${compact(-r.remainingDays)}`, unit: days(-r.remainingDays), fill: 1 };
+    }
+  }
+  const fill = Math.min(Math.max(r.progress, 0), 1);
+  if (r.trigger === 'km' && r.remainingKm !== null) return { value: compact(r.remainingKm), unit: 'km', fill };
+  if (r.remainingDays !== null) return { value: compact(r.remainingDays), unit: days(r.remainingDays), fill };
+  return { value: '—', unit: '', fill };
+}
+
+/** Línea del cuadro de la ficha: `Engrase de cadena en 150 km`, `Líquido de frenos · +5 días`. */
+export function nextServiceText(r: Reminder): string {
+  const label = getTask(r.taskId).label;
+  const g = reminderGauge(r);
+  if (r.status === 'overdue') return `${label} · ${g.value} ${g.unit}`;
+  if (r.trigger !== 'km' && r.remainingDays === 0) return `${label} hoy`;
+  return `${label} en ${g.value} ${g.unit}`;
 }

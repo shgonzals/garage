@@ -69,8 +69,12 @@ const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);
   min-width: 0;
 }
 .name {
-  font-weight: 600;
-  font-size: 15px;
+  font-family: var(--g-font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.15;
   margin-bottom: 2px;
 }
 .status {
@@ -84,6 +88,7 @@ const tone = computed(() => STATUS_TONE[props.summary?.status ?? 'unknown']);
   color: var(--g-text-warning);
 }
 .km {
+  font-family: var(--g-font-mono);
   text-align: right;
   font-weight: 600;
   font-size: 16px;

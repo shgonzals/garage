@@ -7,10 +7,3 @@ export const STATUS_TONE: Record<Urgency, 'danger' | 'warning' | 'success' | 'ne
   ok: 'success',
   unknown: 'neutral',
 };
-
-export const STATUS_DOT: Record<Urgency, string> = {
-  overdue: '🔴',
-  soon: '🟠',
-  ok: '🟢',
-  unknown: '⚪',
-};

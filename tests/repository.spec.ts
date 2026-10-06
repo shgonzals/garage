@@ -51,6 +51,36 @@ describe('migraciones', () => {
     expect(v?.name).toBe('Vieja');
     expect(v?.photo).toBeNull();
   });
+  it('enlaza las lecturas antiguas con su registro al migrar a la versión 3', async () => {
+    const old = await openMemoryDatabase();
+    await old.exec('CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY NOT NULL, applied_at TEXT NOT NULL);');
+    const v1v2 = MIGRATIONS.slice(0, 2)
+      .flatMap((m) => m.sql.split(';'))
+      .map((s) => s.replace(/--.*$/gm, '').trim())
+      .filter(Boolean)
+      .map((sql) => ({ sql }));
+    const ts = '2026-05-01T10:00:00.000Z';
+    await old.batch([
+      ...v1v2,
+      { sql: "INSERT INTO schema_migrations VALUES (1, '2026-01-01'), (2, '2026-01-01')" },
+      { sql: `INSERT INTO vehicles (id, name, type, created_at, updated_at) VALUES ('v1', 'X', 'car', '${ts}', '${ts}')` },
+      {
+        sql: `INSERT INTO entries (id, vehicle_id, done_on, odometer_km, created_at, updated_at)
+              VALUES ('e1', 'v1', '2026-05-01', 1500, '${ts}', '${ts}')`,
+      },
+      {
+        sql: `INSERT INTO odometer_readings (id, vehicle_id, km, read_on, source, created_at, updated_at)
+              VALUES ('r1', 'v1', 1500, '2026-05-01', 'entry', '${ts}', '${ts}'),
+                     ('r0', 'v1', 1000, '2026-04-01', 'manual', '2026-04-01', '2026-04-01')`,
+      },
+    ]);
+    await migrate(old);
+    const readings = await new GarageRepository(old).listReadings('v1');
+    expect(readings.map((r) => [r.id, r.entry_id])).toEqual([
+      ['r1', 'e1'],
+      ['r0', null],
+    ]);
+  });
 });
 
 describe('GarageRepository', () => {
@@ -128,6 +158,55 @@ describe('GarageRepository', () => {
 
   it('rechaza una foto que no es imagen', () => {
     expect(vehicleInputSchema.safeParse({ ...newVehicle(), photo: 'https://example.com/x.jpg' }).success).toBe(false);
+  });
+
+  it('editar un registro reemplaza tareas y km', async () => {
+    const v = await repo.createVehicle(newVehicle({ initial_km: 20000 }), '2026-10-06');
+    const log = (overrides: Record<string, unknown> = {}) =>
+      quickLogSchema.parse({
+        vehicle_id: v.id,
+        done_on: '2026-10-06',
+        odometer_km: 230500, // dedo de más
+        task_ids: ['oil'],
+        cost: 50,
+        notes: '',
+        ...overrides,
+      });
+    const id = await repo.createEntry(log());
+    expect((await repo.currentKmByVehicle()).get(v.id)).toBe(230500);
+
+    await repo.updateEntry(id, log({ odometer_km: 23050, task_ids: ['oil', 'air_filter'], cost: 65.5 }));
+
+    const [entry] = await repo.listEntries(v.id);
+    expect(entry?.odometer_km).toBe(23050);
+    expect(entry?.cost_cents).toBe(6550);
+    expect(entry?.items.map((i) => i.task_id).sort()).toEqual(['air_filter', 'oil']);
+    expect((await repo.currentKmByVehicle()).get(v.id)).toBe(23050);
+    expect((await repo.listReadings(v.id)).filter((r) => r.entry_id === id)).toHaveLength(1);
+  });
+
+  it('borrar un registro borra también su lectura de km', async () => {
+    const v = await repo.createVehicle(newVehicle({ initial_km: 20000 }), '2026-10-06');
+    const id = await repo.createEntry(
+      quickLogSchema.parse({ vehicle_id: v.id, done_on: '2026-10-06', odometer_km: 230500, task_ids: ['oil'], cost: null, notes: '' }),
+    );
+    await repo.deleteEntry(id);
+    expect((await repo.currentKmByVehicle()).get(v.id)).toBe(20000);
+  });
+
+  it('borrar una lectura manual corrige los km; las de un registro no se borran sueltas', async () => {
+    const v = await repo.createVehicle(newVehicle({ initial_km: 20000 }), '2026-10-06');
+    await repo.addOdometerReading(v.id, 200000, '2026-10-07');
+    const entryId = await repo.createEntry(
+      quickLogSchema.parse({ vehicle_id: v.id, done_on: '2026-10-08', odometer_km: 21000, task_ids: ['oil'], cost: null, notes: '' }),
+    );
+    const readings = await repo.listReadings(v.id);
+    const typo = readings.find((r) => r.km === 200000)!;
+    const fromEntry = readings.find((r) => r.entry_id === entryId)!;
+
+    await repo.deleteReading(typo.id);
+    await repo.deleteReading(fromEntry.id); // ignorada
+    expect((await repo.currentKmByVehicle()).get(v.id)).toBe(21000);
   });
 
   it('upsert de schedule', async () => {

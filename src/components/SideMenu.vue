@@ -129,8 +129,11 @@ ion-menu {
   margin-bottom: 14px;
 }
 .brand-name {
-  font-size: 17px;
+  font-family: var(--g-font-display);
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .icon-btn {
@@ -159,17 +162,19 @@ ion-menu {
   height: 38px;
   margin-bottom: 16px;
   border: none;
-  border-radius: 999px;
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: var(--g-radius-md);
+  background: var(--g-accent);
+  color: var(--g-on-accent);
+  font-family: var(--g-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background var(--g-transition);
 }
 .log:hover {
-  background: var(--ion-color-primary-shade);
+  background: var(--g-accent-shade);
 }
 .log:disabled {
   opacity: 0.5;
@@ -207,8 +212,8 @@ nav {
   color: var(--g-text);
 }
 .nav-item.active {
-  background: rgba(var(--ion-color-primary-rgb), 0.12);
-  color: var(--ion-color-primary);
+  background: rgba(var(--g-accent-rgb), 0.14);
+  color: var(--g-accent-text);
   font-weight: 600;
 }
 .nav-icon {

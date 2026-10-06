@@ -1,0 +1,329 @@
+/*
+ * Temas de color: 5 paletas × claro/oscuro.
+ *
+ * - La paleta va en `data-palette` de <html>; el modo, en la clase `ion-palette-dark` (ver theme.ts).
+ * - Sin `data-palette` se usa "taller" (la original).
+ * - `--g-accent` es el color de RELLENO (botones, odómetro, arco), siempre con `--g-on-accent` encima.
+ *   `--g-accent-text` es la versión legible para texto e iconos sobre el fondo: en claro, más oscura.
+ * - `--g-panel-*`: el cuadro de instrumentos de la ficha es oscuro también en modo claro,
+ *   como un panel incrustado; así el acento luce igual en los dos modos.
+ */
+
+/* ── Estados (comunes; algunas paletas ajustan el aviso) ───── */
+
+:root {
+  --g-danger: #d93a26;
+  --g-bg-danger: #fdecea;
+  --g-text-danger: #b42318;
+  --g-border-danger: #f3bdb5;
+  --g-bg-warning: #fff5db;
+  --g-text-warning: #8a5a00;
+  --g-border-warning: #efd28a;
+  --g-success: #2e9e62;
+  --g-bg-success: #e6f4ec;
+  --g-text-success: #1d6b42;
+  --g-border-success: #b9dfc9;
+
+  --g-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --g-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --g-shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+:root.ion-palette-dark {
+  --g-danger: #ff6b57;
+  --g-bg-danger: rgba(255, 107, 87, 0.12);
+  --g-text-danger: #ffa597;
+  --g-border-danger: rgba(255, 107, 87, 0.45);
+  --g-bg-warning: rgba(var(--g-warning-rgb), 0.1);
+  --g-border-warning: rgba(var(--g-warning-rgb), 0.38);
+  --g-success: #5fbf8b;
+  --g-bg-success: rgba(95, 191, 139, 0.1);
+  --g-text-success: #a9dcc0;
+  --g-border-success: rgba(95, 191, 139, 0.35);
+
+  --g-shadow-sm: none;
+  --g-shadow-md: none;
+  --g-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Taller (original): grafito + amarillo de seguridad ────── */
+
+:root,
+:root[data-palette='taller'] {
+  --g-bg: #eef0f2;
+  --g-bg-rgb: 238, 240, 242;
+  --g-surface: #ffffff;
+  --g-surface-secondary: #e3e6e9;
+  --g-text: #15181c;
+  --g-text-rgb: 21, 24, 28;
+  --g-text-secondary: #4b535c;
+  --g-text-muted: #6b737c;
+  --g-border: #d3d8dd;
+  --g-border-strong: #b9c0c7;
+  --g-ring: #e0e4e8;
+  --g-accent: #f5c518;
+  --g-accent-rgb: 245, 197, 24;
+  --g-accent-shade: #d8ad15;
+  --g-accent-tint: #f6cb2f;
+  --g-on-accent: #15181c;
+  --g-on-accent-rgb: 21, 24, 28;
+  --g-accent-text: #876600;
+  --g-warning: #c98a00;
+  --g-warning-rgb: 201, 138, 0;
+  --g-panel-bg: #1d2126;
+  --g-panel-text: #ecedee;
+  --g-panel-muted: #9aa1a9;
+  --g-panel-ring: #2e343b;
+  --g-panel-line: #3a4149;
+  --g-digit-bg: #0d0f12;
+}
+:root.ion-palette-dark,
+:root.ion-palette-dark[data-palette='taller'] {
+  --g-bg: #14171b;
+  --g-bg-rgb: 20, 23, 27;
+  --g-surface: #1d2126;
+  --g-surface-secondary: #23282e;
+  --g-text: #ecedee;
+  --g-text-rgb: 236, 237, 238;
+  --g-text-secondary: #c3c8ce;
+  --g-text-muted: #9aa1a9;
+  --g-border: #2e343b;
+  --g-border-strong: #3a4149;
+  --g-ring: #2a3036;
+  --g-on-accent: #14171b;
+  --g-on-accent-rgb: 20, 23, 27;
+  --g-accent-text: #f5c518;
+  --g-warning: #f5c518;
+  --g-warning-rgb: 245, 197, 24;
+  --g-text-warning: #f8d962;
+  --g-panel-bg: var(--g-surface);
+  --g-panel-ring: #2a3036;
+}
+
+/* ── Verde británico + latón ───────────────────────────────── */
+
+:root[data-palette='britanico'] {
+  --g-bg: #edf1ee;
+  --g-bg-rgb: 237, 241, 238;
+  --g-surface: #ffffff;
+  --g-surface-secondary: #e1e8e3;
+  --g-text: #13201b;
+  --g-text-rgb: 19, 32, 27;
+  --g-text-secondary: #3e4c45;
+  --g-text-muted: #5e6e66;
+  --g-border: #ccd6cf;
+  --g-border-strong: #b2c1b7;
+  --g-ring: #dce4de;
+  --g-accent: #c99c3e;
+  --g-accent-rgb: 201, 156, 62;
+  --g-accent-shade: #b18937;
+  --g-accent-tint: #cea651;
+  --g-on-accent: #13201b;
+  --g-on-accent-rgb: 19, 32, 27;
+  --g-accent-text: #7a5714;
+  --g-warning: #b8892f;
+  --g-warning-rgb: 184, 137, 47;
+  --g-panel-bg: #16201c;
+  --g-panel-text: #e8eeea;
+  --g-panel-muted: #93a39b;
+  --g-panel-ring: #2a3832;
+  --g-panel-line: #35463f;
+  --g-digit-bg: #0a0f0d;
+}
+:root.ion-palette-dark[data-palette='britanico'] {
+  --g-bg: #0e1513;
+  --g-bg-rgb: 14, 21, 19;
+  --g-surface: #16201c;
+  --g-surface-secondary: #1e2925;
+  --g-text: #e8eeea;
+  --g-text-rgb: 232, 238, 234;
+  --g-text-secondary: #c2cdc7;
+  --g-text-muted: #93a39b;
+  --g-border: #2a3832;
+  --g-border-strong: #35463f;
+  --g-ring: #22302a;
+  --g-accent: #d4a94f;
+  --g-accent-rgb: 212, 169, 79;
+  --g-accent-shade: #bb9546;
+  --g-accent-tint: #d8b261;
+  --g-on-accent: #0e1513;
+  --g-on-accent-rgb: 14, 21, 19;
+  --g-accent-text: #d4a94f;
+  --g-warning: #d4a94f;
+  --g-warning-rgb: 212, 169, 79;
+  --g-text-warning: #e8cb8a;
+  --g-panel-bg: var(--g-surface);
+  --g-panel-ring: #22302a;
+}
+
+/* ── Petróleo + naranja ────────────────────────────────────── */
+
+:root[data-palette='petroleo'] {
+  --g-bg: #ecf1f3;
+  --g-bg-rgb: 236, 241, 243;
+  --g-surface: #ffffff;
+  --g-surface-secondary: #dfe8ec;
+  --g-text: #102027;
+  --g-text-rgb: 16, 32, 39;
+  --g-text-secondary: #3b4d56;
+  --g-text-muted: #5a6e78;
+  --g-border: #cad5db;
+  --g-border-strong: #b0c0c8;
+  --g-ring: #dae3e8;
+  --g-accent: #ff6b1a;
+  --g-accent-rgb: 255, 107, 26;
+  --g-accent-shade: #e05e17;
+  --g-accent-tint: #ff7a31;
+  --g-on-accent: #0d171c;
+  --g-on-accent-rgb: 13, 23, 28;
+  --g-accent-text: #b4460a;
+  --g-warning: #d98e00;
+  --g-warning-rgb: 217, 142, 0;
+  --g-panel-bg: #142229;
+  --g-panel-text: #e6eef2;
+  --g-panel-muted: #8ea2ad;
+  --g-panel-ring: #26363f;
+  --g-panel-line: #33454f;
+  --g-digit-bg: #091115;
+}
+:root.ion-palette-dark[data-palette='petroleo'] {
+  --g-bg: #0d171c;
+  --g-bg-rgb: 13, 23, 28;
+  --g-surface: #142229;
+  --g-surface-secondary: #1b2930;
+  --g-text: #e6eef2;
+  --g-text-rgb: 230, 238, 242;
+  --g-text-secondary: #c0cdd3;
+  --g-text-muted: #8ea2ad;
+  --g-border: #26363f;
+  --g-border-strong: #33454f;
+  --g-ring: #1f2e36;
+  --g-accent-text: #ff8a47;
+  --g-warning: #ffb020;
+  --g-warning-rgb: 255, 176, 32;
+  --g-text-warning: #ffd27a;
+  --g-panel-bg: var(--g-surface);
+  --g-panel-ring: #1f2e36;
+}
+
+/* ── Nocturno: negro azulado + cian ────────────────────────── */
+
+:root[data-palette='nocturno'] {
+  --g-bg: #edf2f6;
+  --g-bg-rgb: 237, 242, 246;
+  --g-surface: #ffffff;
+  --g-surface-secondary: #e0e8ef;
+  --g-text: #0e1822;
+  --g-text-rgb: 14, 24, 34;
+  --g-text-secondary: #3a4a5a;
+  --g-text-muted: #586b7d;
+  --g-border: #cbd7e1;
+  --g-border-strong: #b1c1cf;
+  --g-ring: #dae3eb;
+  /* En claro, un teal más profundo: el cian puro no se distingue sobre blanco. */
+  --g-accent: #0fa897;
+  --g-accent-rgb: 15, 168, 151;
+  --g-accent-shade: #0d9485;
+  --g-accent-tint: #27b1a1;
+  --g-on-accent: #031b18;
+  --g-on-accent-rgb: 3, 27, 24;
+  --g-accent-text: #0b7a6e;
+  --g-warning: #d98e00;
+  --g-warning-rgb: 217, 142, 0;
+  --g-panel-bg: #111922;
+  --g-panel-text: #e3edf5;
+  --g-panel-muted: #8698aa;
+  --g-panel-ring: #223040;
+  --g-panel-line: #2e3f52;
+  --g-digit-bg: #070b0f;
+}
+:root.ion-palette-dark[data-palette='nocturno'] {
+  --g-bg: #0a0f14;
+  --g-bg-rgb: 10, 15, 20;
+  --g-surface: #111922;
+  --g-surface-secondary: #172230;
+  --g-text: #e3edf5;
+  --g-text-rgb: 227, 237, 245;
+  --g-text-secondary: #bcc9d5;
+  --g-text-muted: #8698aa;
+  --g-border: #223040;
+  --g-border-strong: #2e3f52;
+  --g-ring: #1a2533;
+  --g-accent: #4fe0d0;
+  --g-accent-rgb: 79, 224, 208;
+  --g-accent-shade: #46c5b7;
+  --g-accent-tint: #61e3d5;
+  --g-on-accent: #0a0f14;
+  --g-on-accent-rgb: 10, 15, 20;
+  --g-accent-text: #4fe0d0;
+  --g-warning: #ffb547;
+  --g-warning-rgb: 255, 181, 71;
+  --g-text-warning: #ffd08a;
+  --g-panel-bg: var(--g-surface);
+  --g-panel-ring: #1a2533;
+}
+
+/* ── Rosa: berenjena casi negra + rosa neón ────────────────── */
+
+:root[data-palette='rosa'] {
+  --g-bg: #f5eff3;
+  --g-bg-rgb: 245, 239, 243;
+  --g-surface: #ffffff;
+  --g-surface-secondary: #ede3ea;
+  --g-text: #1e141c;
+  --g-text-rgb: 30, 20, 28;
+  --g-text-secondary: #4e3f4b;
+  --g-text-muted: #6e5d6b;
+  --g-border: #e0d1db;
+  --g-border-strong: #cdb8c7;
+  --g-ring: #eadfe7;
+  --g-accent: #ff4f98;
+  --g-accent-rgb: 255, 79, 152;
+  --g-accent-shade: #e04686;
+  --g-accent-tint: #ff61a2;
+  --g-on-accent: #1e141c;
+  --g-on-accent-rgb: 30, 20, 28;
+  --g-accent-text: #b21e62;
+  --g-warning: #d98e00;
+  --g-warning-rgb: 217, 142, 0;
+  /* Vencido en naranja rojizo: un rojo puro se confundiría con el rosa de la marca. */
+  --g-danger: #d2491a;
+  --g-bg-danger: #fdeee6;
+  --g-text-danger: #a93a12;
+  --g-border-danger: #f4c7b3;
+  --g-panel-bg: #1e1820;
+  --g-panel-text: #f1eaf2;
+  --g-panel-muted: #a797ab;
+  --g-panel-ring: #352c38;
+  --g-panel-line: #43384a;
+  --g-digit-bg: #0e0b0f;
+}
+:root.ion-palette-dark[data-palette='rosa'] {
+  --g-bg: #151116;
+  --g-bg-rgb: 21, 17, 22;
+  --g-surface: #1e1820;
+  --g-surface-secondary: #261f29;
+  --g-text: #f1eaf2;
+  --g-text-rgb: 241, 234, 242;
+  --g-text-secondary: #d0c3d2;
+  --g-text-muted: #a797ab;
+  --g-border: #352c38;
+  --g-border-strong: #43384a;
+  --g-ring: #2b232e;
+  --g-accent: #ff5fa2;
+  --g-accent-rgb: 255, 95, 162;
+  --g-accent-shade: #e05490;
+  --g-accent-tint: #ff6fab;
+  --g-on-accent: #151116;
+  --g-on-accent-rgb: 21, 17, 22;
+  --g-accent-text: #ff7db4;
+  --g-warning: #ffc24b;
+  --g-warning-rgb: 255, 194, 75;
+  --g-text-warning: #ffda8f;
+  --g-danger: #ff7a45;
+  --g-bg-danger: rgba(255, 122, 69, 0.12);
+  --g-text-danger: #ffb08f;
+  --g-border-danger: rgba(255, 122, 69, 0.45);
+  --g-panel-bg: var(--g-surface);
+  --g-panel-ring: #2b232e;
+}

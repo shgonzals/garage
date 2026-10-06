@@ -227,7 +227,7 @@ async function remove() {
   cursor: pointer;
 }
 .photo-btn:focus-visible {
-  outline: 3px solid rgba(var(--ion-color-primary-rgb), 0.4);
+  outline: 3px solid rgba(var(--g-accent-rgb), 0.5);
   outline-offset: 3px;
 }
 .photo-badge {
@@ -239,8 +239,8 @@ async function remove() {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--ion-color-primary);
-  color: #fff;
+  background: var(--g-accent);
+  color: var(--g-on-accent);
   font-size: 16px;
   border: 3px solid var(--g-bg);
 }
@@ -271,8 +271,8 @@ async function remove() {
   transition: all var(--g-transition);
 }
 .type.active {
-  border-color: var(--ion-color-primary);
-  box-shadow: 0 0 0 2px var(--ion-color-primary);
+  border-color: var(--g-accent-text);
+  box-shadow: 0 0 0 2px var(--g-accent-text);
 }
 .type-emoji {
   font-size: 22px;

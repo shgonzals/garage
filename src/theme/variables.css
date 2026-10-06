@@ -1,130 +1,124 @@
 /*
- * Diseño "Sesame moderno": limpio, premium, con modo oscuro completo.
- * Los tokens `--g-*` son nuestros; abajo se mapean a las variables de Ionic.
- * El modo oscuro se activa con la clase `ion-palette-dark` en <html> (ver theme.ts).
+ * Diseño "Taller + Cuadro de mandos": grafito, tipografía condensada, odómetro mecánico.
+ * Los colores viven en palettes.css (5 temas × claro/oscuro); aquí se mapean a Ionic
+ * y se definen las utilidades compartidas. Ver theme.ts para cómo se elige tema y modo.
  */
 
 :root {
-  --g-bg: #ffffff;
-  --g-surface: #f8fafc;
-  --g-surface-secondary: #f3f4f6;
-  --g-text: #111827;
-  --g-text-secondary: #64748b;
-  --g-text-muted: #94a3b8;
-  --g-border: #e2e8f0;
-  --g-border-strong: #d1d5db;
+  --g-font-body: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --g-font-display: 'Barlow Condensed', 'Barlow', sans-serif;
+  --g-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  --g-primary: #6366f1;
-  --g-secondary: #ec4899;
-  --g-danger: #ef4444;
-  --g-warning: #f59e0b;
-  --g-success: #10b981;
-  --g-neutral: #94a3b8;
-
-  --g-bg-danger: #fee2e2;
-  --g-text-danger: #dc2626;
-  --g-border-danger: #fecaca;
-  --g-bg-warning: #ffedd5;
-  --g-text-warning: #ea580c;
-  --g-border-warning: #fed7aa;
-  --g-bg-success: #dcfce7;
-  --g-text-success: #15803d;
-  --g-border-success: #bbf7d0;
-  --g-bg-neutral: #f1f5f9;
-  --g-text-neutral: #475569;
-  --g-border-neutral: #e2e8f0;
-
-  --g-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --g-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --g-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-
-  --g-radius-md: 12px;
-  --g-radius-lg: 16px;
+  --g-radius-md: 6px;
+  --g-radius-lg: 8px;
   --g-transition: 200ms ease;
 
-  /* Ionic */
-  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --ion-background-color: var(--g-bg);
-  --ion-background-color-rgb: 255, 255, 255;
-  --ion-text-color: var(--g-text);
-  --ion-text-color-rgb: 17, 24, 39;
-  --ion-toolbar-background: var(--g-bg);
-  --ion-tab-bar-background: var(--g-bg);
-  --ion-item-background: var(--g-bg);
-  --ion-border-color: var(--g-border);
-
-  --ion-color-primary: #6366f1;
-  --ion-color-primary-rgb: 99, 102, 241;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #575ad4;
-  --ion-color-primary-tint: #7375f2;
-
-  --ion-color-secondary: #ec4899;
-  --ion-color-secondary-rgb: 236, 72, 153;
-  --ion-color-secondary-contrast: #ffffff;
-  --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #d03f87;
-  --ion-color-secondary-tint: #ee5aa3;
-
-  --ion-color-success: #10b981;
-  --ion-color-success-rgb: 16, 185, 129;
-  --ion-color-success-contrast: #ffffff;
-  --ion-color-success-contrast-rgb: 255, 255, 255;
-  --ion-color-success-shade: #0ea371;
-  --ion-color-success-tint: #28c08e;
-
-  --ion-color-warning: #f59e0b;
-  --ion-color-warning-rgb: 245, 158, 11;
-  --ion-color-warning-contrast: #000000;
-  --ion-color-warning-contrast-rgb: 0, 0, 0;
-  --ion-color-warning-shade: #d88b0a;
-  --ion-color-warning-tint: #f6a823;
-
-  --ion-color-danger: #ef4444;
-  --ion-color-danger-rgb: 239, 68, 68;
-  --ion-color-danger-contrast: #ffffff;
-  --ion-color-danger-contrast-rgb: 255, 255, 255;
-  --ion-color-danger-shade: #d23c3c;
-  --ion-color-danger-tint: #f15757;
+  /* Nombres heredados que siguen usando algunos componentes. */
+  --g-primary: var(--g-accent);
+  --g-neutral: var(--g-text-muted);
+  --g-bg-neutral: var(--g-surface-secondary);
+  --g-text-neutral: var(--g-text-secondary);
+  --g-border-neutral: var(--g-border);
 }
 
+/* `.ion-palette-dark` de Ionic tiene la misma especificidad: este bloque va después y manda. */
+:root,
 :root.ion-palette-dark {
-  --g-bg: #0f172a;
-  --g-surface: #1e293b;
-  --g-surface-secondary: #0f172a;
-  --g-text: #f1f5f9;
-  --g-text-secondary: #cbd5e1;
-  --g-text-muted: #94a3b8;
-  --g-border: #334155;
-  --g-border-strong: #475569;
-
-  --g-bg-danger: #450a0a;
-  --g-text-danger: #fca5a5;
-  --g-border-danger: #991b1b;
-  --g-bg-warning: #431407;
-  --g-text-warning: #fdba74;
-  --g-border-warning: #9a3412;
-  --g-bg-success: #052e16;
-  --g-text-success: #86efac;
-  --g-border-success: #047857;
-  --g-bg-neutral: #1e293b;
-  --g-text-neutral: #cbd5e1;
-  --g-border-neutral: #334155;
-
-  --g-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --g-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --g-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-
+  --ion-font-family: var(--g-font-body);
   --ion-background-color: var(--g-bg);
-  --ion-background-color-rgb: 15, 23, 42;
+  --ion-background-color-rgb: var(--g-bg-rgb);
   --ion-text-color: var(--g-text);
-  --ion-text-color-rgb: 241, 245, 249;
+  --ion-text-color-rgb: var(--g-text-rgb);
   --ion-toolbar-background: var(--g-bg);
-  --ion-tab-bar-background: var(--g-bg);
+  --ion-toolbar-border-color: var(--g-border);
+  --ion-tab-bar-background: var(--g-surface);
+  --ion-tab-bar-border-color: var(--g-border);
   --ion-item-background: var(--g-surface);
   --ion-card-background: var(--g-surface);
   --ion-border-color: var(--g-border);
+  --ion-overlay-background-color: var(--g-surface);
+
+  --ion-color-primary: var(--g-accent);
+  --ion-color-primary-rgb: var(--g-accent-rgb);
+  --ion-color-primary-contrast: var(--g-on-accent);
+  --ion-color-primary-contrast-rgb: var(--g-on-accent-rgb);
+  --ion-color-primary-shade: var(--g-accent-shade);
+  --ion-color-primary-tint: var(--g-accent-tint);
+
+  --ion-color-danger: var(--g-danger);
+  --ion-color-danger-rgb: 217, 58, 38;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: var(--g-danger);
+  --ion-color-danger-tint: var(--g-danger);
+
+  --ion-color-success: var(--g-success);
+  --ion-color-success-rgb: 46, 158, 98;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: var(--g-success);
+  --ion-color-success-tint: var(--g-success);
+
+  --ion-color-warning: var(--g-warning);
+  --ion-color-warning-rgb: var(--g-warning-rgb);
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: var(--g-warning);
+  --ion-color-warning-tint: var(--g-warning);
+}
+
+/* ── Tipografía y controles con carácter de taller ─────────── */
+
+ion-title,
+ion-tab-button,
+ion-button,
+ion-segment-button {
+  font-family: var(--g-font-display);
+}
+ion-title {
+  letter-spacing: 0.04em;
+}
+ion-title[size='large'] {
+  text-transform: uppercase;
+}
+ion-button {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+ion-segment-button {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+ion-tab-button {
+  --color-selected: var(--g-accent-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* El acento de relleno (amarillo, cian…) no se lee como texto sobre fondo claro: los
+   botones de texto, "atrás" y las alertas usan la versión legible. */
+ion-button.button-clear:not(.ion-color),
+ion-button.button-outline:not(.ion-color) {
+  --color: var(--g-accent-text);
+  --border-color: var(--g-accent-text);
+}
+ion-back-button {
+  --color: var(--g-accent-text);
+}
+ion-alert .alert-button:not(.alert-button-role-destructive) {
+  color: var(--g-accent-text);
+}
+
+/* Botón de registrar: rombo, como la tecla central del cuadro. */
+ion-fab-button {
+  --border-radius: 12px;
+  --box-shadow: var(--g-shadow-lg);
+  transform: rotate(45deg);
+}
+ion-fab-button ion-icon {
+  transform: rotate(-45deg);
 }
 
 /* ── Utilidades compartidas ─────────────────────────────────── */
@@ -137,13 +131,32 @@ ion-toolbar {
   margin: 24px 0 8px;
 }
 
+/* Título de sección: condensado, en mayúsculas y con una línea que lo prolonga. */
 .g-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--g-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--g-text-secondary);
+  color: var(--g-text);
   margin: 0 0 10px;
+}
+.g-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--g-border);
+}
+/* Franja de aviso delante del título (Urgencias). */
+.g-section-title.g-hazard::before {
+  content: '';
+  flex: none;
+  width: 22px;
+  height: 8px;
+  background: repeating-linear-gradient(-45deg, var(--g-accent) 0 5px, transparent 5px 10px);
 }
 
 .g-card {
@@ -152,6 +165,11 @@ ion-toolbar {
   border-radius: var(--g-radius-lg);
   box-shadow: var(--g-shadow-md);
   padding: 16px;
+}
+
+.g-mono {
+  font-family: var(--g-font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .g-muted {
@@ -175,8 +193,11 @@ ion-toolbar {
 
 .g-empty h2 {
   color: var(--g-text);
-  font-size: 20px;
+  font-family: var(--g-font-display);
+  font-size: 24px;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   margin: 0 0 8px;
 }
 
@@ -202,8 +223,8 @@ ion-input.ios.input-fill-outline .input-bottom {
 }
 ion-input.ios.input-fill-outline.has-focus,
 ion-textarea.ios.textarea-fill-outline.has-focus {
-  border-color: var(--ion-color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+  border-color: var(--g-accent-text);
+  box-shadow: 0 0 0 3px rgba(var(--g-accent-rgb), 0.22);
 }
 
 /* ── Escritorio (≥ 992px, mismo corte que ion-split-pane "lg") ─
@@ -300,7 +321,4 @@ ion-textarea.ios.textarea-fill-outline.has-focus {
     margin-bottom: 0 !important;
   }
 
-  .g-section-title {
-    font-size: 12px;
-  }
 }

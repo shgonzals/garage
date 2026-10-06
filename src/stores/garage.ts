@@ -120,6 +120,20 @@ export const useGarageStore = defineStore('garage', () => {
     return id;
   }
 
+  async function updateEntry(id: string, data: QuickLogData) {
+    await r().updateEntry(id, data);
+    await reload();
+  }
+
+  function listReadings(vehicleId: string) {
+    return r().listReadings(vehicleId);
+  }
+
+  async function deleteReading(id: string) {
+    await r().deleteReading(id);
+    await reload();
+  }
+
   async function deleteEntry(id: string) {
     await r().deleteEntry(id);
     await reload();
@@ -152,6 +166,9 @@ export const useGarageStore = defineStore('garage', () => {
     addReading,
     logEntry,
     deleteEntry,
+    updateEntry,
+    listReadings,
+    deleteReading,
     saveSchedules,
   };
 });

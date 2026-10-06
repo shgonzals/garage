@@ -18,7 +18,9 @@ const routes: RouteRecordRaw[] = [
   { path: '/vehicles/:id', component: () => import('@/views/VehicleDetailPage.vue'), props: true },
   { path: '/vehicles/:id/edit', component: () => import('@/views/VehicleFormPage.vue'), props: true },
   { path: '/vehicles/:id/plan', component: () => import('@/views/SchedulesPage.vue'), props: true },
+  { path: '/vehicles/:id/km', component: () => import('@/views/OdometerPage.vue'), props: true },
   { path: '/log', component: () => import('@/views/QuickLogPage.vue') },
+  { path: '/entries/:entryId/edit', component: () => import('@/views/QuickLogPage.vue'), props: true },
   { path: '/:pathMatch(.*)*', redirect: '/tabs/garage' },
 ];
 

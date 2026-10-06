@@ -19,6 +19,17 @@ import '@ionic/vue/css/padding.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 import '@ionic/vue/css/palettes/dark.class.css';
+
+/* Tipografías locales: la app funciona sin conexión */
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/500.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-condensed/600.css';
+import '@fontsource/barlow-condensed/700.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/ibm-plex-mono/600.css';
+
+import './theme/palettes.css';
 import './theme/variables.css';
 
 async function bootstrap() {

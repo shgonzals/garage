@@ -14,8 +14,29 @@
       </ion-header>
 
       <section class="g-section">
-        <h3 class="g-section-title">Apariencia</h3>
-        <ion-segment v-model="themePreference" aria-label="Tema">
+        <h3 class="g-section-title">Tema</h3>
+        <div class="palettes" role="radiogroup" aria-label="Tema de color">
+          <button
+            v-for="p in PALETTES"
+            :key="p.id"
+            type="button"
+            role="radio"
+            class="palette"
+            :class="{ active: palettePreference === p.id }"
+            :aria-checked="palettePreference === p.id"
+            @click="palettePreference = p.id"
+          >
+            <span class="swatch" :style="{ background: p.swatch[0] }" aria-hidden="true">
+              <span class="swatch-accent" :style="{ background: p.swatch[1] }" />
+            </span>
+            {{ p.label }}
+          </button>
+        </div>
+      </section>
+
+      <section class="g-section">
+        <h3 class="g-section-title">Modo</h3>
+        <ion-segment v-model="themePreference" aria-label="Modo claro u oscuro">
           <ion-segment-button value="system">
             <ion-label>Sistema</ion-label>
           </ion-segment-button>
@@ -62,7 +83,7 @@ import {
 } from '@ionic/vue';
 import { seedDemoData } from '@/db/demo';
 import { useGarageStore } from '@/stores/garage';
-import { themePreference } from '@/theme/theme';
+import { palettePreference, PALETTES, themePreference } from '@/theme/theme';
 
 const version = __APP_VERSION__;
 const store = useGarageStore();
@@ -94,6 +115,48 @@ async function seed() {
 </script>
 
 <style scoped>
+.palettes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.palette {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px;
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-border);
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-family: var(--g-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.palette.active {
+  border-color: var(--g-accent-text);
+  box-shadow: 0 0 0 2px var(--g-accent-text);
+}
+/* Muestra: fondo oscuro del tema con su acento, como un rodillo del odómetro. */
+.swatch {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  border-radius: var(--g-radius-md);
+  overflow: hidden;
+}
+.swatch-accent {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 18px;
+  border-radius: 3px;
+}
 .info {
   margin-top: 0;
   font-size: 14px;
