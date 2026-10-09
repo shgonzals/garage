@@ -7,7 +7,8 @@ Límites de Play: nombre 30 caracteres, descripción breve 80, descripción comp
 - Gráfico destacado (1024 × 500): `store/screenshots/<idioma>/feature-graphic.png`
 - Capturas de teléfono (1080 × 1920): `store/screenshots/<idioma>/01…06-*.png` (se regeneran con `npm run store:shots`)
 - Categoría: **Coches y vehículos** (Auto & Vehicles)
-- Política de privacidad: `https://shgonzals.github.io/garage/privacy.html`
+- Política de privacidad: `https://lichium.dev/privacy.html` (común de Lichium Dev; fuente en `web/privacy.html`)
+- Correo de contacto: `support@lichium.dev`
 
 ---
 
@@ -37,7 +38,7 @@ Garage Pro es un pago único (no una suscripción) y añade:
 - Cuatro temas de color más.
 - Un widget para la pantalla de inicio.
 
-La app está en español y en inglés. Hecha por Orbita Labs.
+La app está en español y en inglés. Hecha por Lichium Dev.
 
 ---
 
@@ -67,4 +68,4 @@ Garage Pro is a one-off purchase, not a subscription. It adds:
 - Four extra colour themes.
 - A home screen widget.
 
-Available in English and Spanish. Made by Orbita Labs.
+Available in English and Spanish. Made by Lichium Dev.

@@ -239,6 +239,8 @@ const es = {
     deleteMessage: 'Lectura del {date}.',
   },
   settings: {
+    privacy: 'Política de privacidad',
+    contact: 'Contacto',
     proOnly: 'Solo en Garage Pro',
     proPitch: 'Gastos, temas, vehículos sin límite y widget',
     proActive: 'Activo. ¡Gracias!',

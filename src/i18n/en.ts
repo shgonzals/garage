@@ -238,6 +238,8 @@ const en: Messages = {
     deleteMessage: 'Reading from {date}.',
   },
   settings: {
+    privacy: 'Privacy policy',
+    contact: 'Contact',
     proOnly: 'Garage Pro only',
     proPitch: 'Spending, themes, unlimited vehicles and widget',
     proActive: 'Active. Thank you!',

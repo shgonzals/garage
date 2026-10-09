@@ -149,8 +149,13 @@
         <span>Garage v{{ version }}</span>
         <span class="studio">
           {{ $t('settings.madeBy') }}
-          <StudioMark :size="14" />
-          <strong>Orbita Labs</strong>
+          <StudioMark :size="16" />
+          <strong>Lichium Dev</strong>
+        </span>
+        <span class="legal">
+          <a :href="PRIVACY_URL" @click.prevent="openExternal(PRIVACY_URL)">{{ $t('settings.privacy') }}</a>
+          ·
+          <a :href="`mailto:${SUPPORT_EMAIL}`" @click.prevent="openExternal(`mailto:${SUPPORT_EMAIL}`)">{{ $t('settings.contact') }}</a>
         </span>
       </footer>
     </ion-content>
@@ -190,6 +195,8 @@ import { languagePreference, LANGUAGES, t } from '@/i18n';
 import { FREE_PALETTE, isPro } from '@/lib/pro';
 import AppLogo from '@/components/AppLogo.vue';
 import StudioMark from '@/components/StudioMark.vue';
+import { openExternal } from '@/lib/calendar';
+import { PRIVACY_URL, SUPPORT_EMAIL } from '@/lib/links';
 import { checkmarkCircle, chevronForward } from 'ionicons/icons';
 import { useIonRouter, IonIcon } from '@ionic/vue';
 import { palettePreference, PALETTES, themePreference, type PaletteId } from '@/theme/theme';
@@ -497,6 +504,9 @@ async function seed() {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+}
+.legal a {
+  color: inherit;
 }
 .studio strong {
   font-weight: 600;

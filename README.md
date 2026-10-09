@@ -68,7 +68,7 @@ src/
   views/           Pantallas
   theme/           Los 5 temas de color, en claro y oscuro
 android/           Proyecto nativo (widget y compras en app/src/main/java)
-docs/              Web y política de privacidad (GitHub Pages)
+web/privacy.html   Política de privacidad común de Lichium Dev (se publica en lichium.dev)
 store/             Ficha de Google Play, capturas y guía de publicación
 tests/  e2e/       Vitest y Playwright
 ```
@@ -106,4 +106,4 @@ El detalle está en [CHANGELOG.md](CHANGELOG.md). La versión sale de `package.j
   ([store/PUBLICAR.md](store/PUBLICAR.md))
 - [ ] **Más adelante:** cuenta de Google y sincronización entre dispositivos, iOS
 
-Hecha por Orbita Labs.
+Hecha por Lichium Dev.

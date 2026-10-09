@@ -15,17 +15,18 @@ Cada versión que subes a Play va firmada con la **clave de subida**:
 Con *Firma de aplicaciones de Play* (activada por defecto), Google guarda la clave final de la app; la tuya solo
 sirve para demostrar que las subidas son tuyas.
 
-## 1. Política de privacidad (GitHub Pages)
+## 1. Política de privacidad (lichium.dev)
 
-1. En GitHub: repositorio `garage` → **Settings → Pages**.
-2. *Source*: **Deploy from a branch**; *Branch*: `main`, carpeta **/docs** → Save.
-3. En un par de minutos estará en `https://shgonzals.github.io/garage/privacy.html`.
+Es la común de Lichium Dev, en inglés, para todos los juegos y apps: **`https://lichium.dev/privacy.html`**. La
+versión nueva, genérica pero que ya cubre lo que usa Garage (compras, cámara, avisos, abrir el calendario, copia
+de Android), está en `web/privacy.html`: súbela a la web en lugar de la actual, que solo habla de juegos. Es la URL que enlaza la app (Ajustes,
+`src/lib/links.ts`) y la que hay que poner en Play Console.
 
 ## 2. Crear la app en Play Console
 
-1. **Nombre de desarrollador** (*Configuración → Página de desarrollador* / al crear la cuenta): **Orbita Labs**.
-   Es el "hecho por" que se ve bajo el nombre de la app en la tienda; logo e imagen de cabecera en
-   `../orbita-labs/brand/` (`icono-512.png`, `cabecera-google-play-4096x2304.png`).
+1. **Nombre de desarrollador** (*Configuración → Página de desarrollador* / al crear la cuenta): **Lichium Dev**.
+   Es el "hecho por" que se ve bajo el nombre de la app en la tienda. Web: `https://lichium.dev`; correo de
+   contacto: `support@lichium.dev`.
 2. **Crear aplicación**: nombre *Garage · Mantenimiento*, idioma predeterminado *Español (España)*, tipo
    *Aplicación*, *Gratuita* (las compras dentro de la app no cambian esto).
 3. **Panel → Configurar la aplicación**, en orden:
@@ -35,7 +36,7 @@ sirve para demostrar que las subidas son tuyas.
    - **Público objetivo**: 18 años o más (evita los requisitos extra para menores).
    - **Seguridad de los datos**: ver el apartado 4.
    - **Aplicaciones gubernamentales**, **funciones financieras**, **salud**: *No*.
-   - **Política de privacidad**: la URL del paso 1.
+   - **Política de privacidad**: `https://lichium.dev/privacy.html`.
 4. **Ficha principal**: textos e imágenes de `store/listing.md` (añade el inglés en *Traducciones*).
 
 ## 3. Producto Garage Pro

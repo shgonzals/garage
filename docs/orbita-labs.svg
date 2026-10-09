@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <mask id="m3" maskUnits="userSpaceOnUse" x="-424" y="-424" width="1360" height="1360">
-    <rect x="-424" y="-424" width="1360" height="1360" fill="#fff"/>
-    <circle cx="384.52" cy="127.47999999999999" r="92.684" fill="#000"/>
-  </mask>
-  <circle cx="256" cy="256" r="181.56" fill="none" stroke="#7C3AED" stroke-width="75.48" mask="url(#m3)"/>
-  <circle cx="384.52" cy="127.47999999999999" r="65.484" fill="#EC4899"/>
-</svg>

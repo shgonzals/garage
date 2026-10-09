@@ -12,7 +12,9 @@ Primera versión para Google Play.
   de escritorio. Pantalla "Garage Pro" con la compra y "Restaurar compra"; acceso desde Ajustes y desde cada
   función bloqueada.
 - Firma de publicación y `npm run aab` (paquete para Google Play).
-- Política de privacidad en GitHub Pages (`docs/`), ficha de la tienda y capturas (`store/`, `npm run store:shots`).
+- Política de privacidad común de Lichium Dev (`web/privacy.html`, en lichium.dev), enlazada desde Ajustes junto
+  al correo de contacto, y firma «Hecho por Lichium Dev» en Ajustes;
+  ficha de la tienda y capturas (`store/`, `npm run store:shots`).
 
 ### Cambiado
 - Versión gratuita: hasta 2 vehículos propios (los de ejemplo no cuentan) y tema Taller.
