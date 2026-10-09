@@ -12,10 +12,10 @@ def keystore = new Properties()
 if (keystoreFile.exists()) keystoreFile.withInputStream { keystore.load(it) }
 
 android {
-    namespace = "com.shgonzals.garage"
+    namespace = "dev.lichium.garage"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.shgonzals.garage"
+        applicationId "dev.lichium.garage"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode appVersionCode

@@ -1,4 +1,4 @@
-package com.shgonzals.garage;
+package dev.lichium.garage;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;

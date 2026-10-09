@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">Garage</string>
     <string name="title_activity_main">Garage</string>
-    <string name="package_name">com.shgonzals.garage</string>
-    <string name="custom_url_scheme">com.shgonzals.garage</string>
+    <string name="package_name">dev.lichium.garage</string>
+    <string name="custom_url_scheme">dev.lichium.garage</string>
     <!-- Widget (en inglés por defecto; español en values-es). Los textos con datos los manda la app ya traducidos. -->
     <string name="widget_description">Upcoming services and a quick log button</string>
     <string name="widget_quick_log">Log</string>

@@ -1,4 +1,4 @@
-package com.shgonzals.garage;
+package dev.lichium.garage;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;

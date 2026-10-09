@@ -11,6 +11,7 @@ Primera versión para Google Play.
 - **Garage Pro**, pago único en Google Play: pestaña Gastos, temas de color extra, más de 2 vehículos y widget
   de escritorio. Pantalla "Garage Pro" con la compra y "Restaurar compra"; acceso desde Ajustes y desde cada
   función bloqueada.
+- ID de la app `dev.lichium.garage` (antes `com.shgonzals.garage`; se instala como una app nueva).
 - Firma de publicación y `npm run aab` (paquete para Google Play).
 - Política de privacidad común de Lichium Dev (`web/privacy.html`, en lichium.dev), enlazada desde Ajustes junto
   al correo de contacto, y firma «Hecho por Lichium Dev» en Ajustes;

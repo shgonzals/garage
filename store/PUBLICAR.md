@@ -27,9 +27,10 @@ de Android), está en `web/privacy.html`: súbela a la web en lugar de la actual
 1. **Nombre de desarrollador** (*Configuración → Página de desarrollador* / al crear la cuenta): **Lichium Dev**.
    Es el "hecho por" que se ve bajo el nombre de la app en la tienda. Web: `https://lichium.dev`; correo de
    contacto: `support@lichium.dev`.
-2. **Crear aplicación**: nombre *Garage · Mantenimiento*, idioma predeterminado *Español (España)*, tipo
+2. **ID del paquete**: `dev.lichium.garage`. Queda fijado con el primer AAB que subas y ya no se puede cambiar.
+3. **Crear aplicación**: nombre *Garage · Mantenimiento*, idioma predeterminado *Español (España)*, tipo
    *Aplicación*, *Gratuita* (las compras dentro de la app no cambian esto).
-3. **Panel → Configurar la aplicación**, en orden:
+4. **Panel → Configurar la aplicación**, en orden:
    - **Acceso a la app**: todas las funciones disponibles sin restricciones.
    - **Anuncios**: *No, mi aplicación no contiene anuncios*.
    - **Clasificación de contenido**: cuestionario → categoría *Utilidades / Productividad*; todo *No*.
@@ -37,7 +38,7 @@ de Android), está en `web/privacy.html`: súbela a la web en lugar de la actual
    - **Seguridad de los datos**: ver el apartado 4.
    - **Aplicaciones gubernamentales**, **funciones financieras**, **salud**: *No*.
    - **Política de privacidad**: `https://lichium.dev/privacy.html`.
-4. **Ficha principal**: textos e imágenes de `store/listing.md` (añade el inglés en *Traducciones*).
+5. **Ficha principal**: textos e imágenes de `store/listing.md` (añade el inglés en *Traducciones*).
 
 ## 3. Producto Garage Pro
 

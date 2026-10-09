@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.shgonzals.garage',
+  appId: 'dev.lichium.garage',
   appName: 'Garage',
   webDir: 'dist',
   plugins: {
